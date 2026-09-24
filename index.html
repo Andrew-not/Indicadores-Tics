@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiTrace UPEC v1.6</title>
+    <title>LogiTrace UPEC v1.6.1</title>
 
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
@@ -154,7 +154,7 @@
 <body>
 
     <header>
-        <h1>📦 LogiTrace UPEC v1.6</h1>
+        <h1>📦 LogiTrace UPEC v1.6.1</h1>
         <p>Trazabilidad Logística · EAN-13 · QR · RFID · Ruta Real OSRM</p>
     </header>
 
@@ -656,14 +656,14 @@
     </div>
 
     <footer>
-        <p>LogiTrace UPEC v1.6 | Trazabilidad + Geolocalización + OSRM</p>
+        <p>LogiTrace UPEC v1.6.1 | Trazabilidad + Geolocalización + OSRM</p>
     </footer>
 
     <script>
         // =========================================================
         // CONFIGURACIÓN
         // =========================================================
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwEN0cXOUHLnPqCbQeH_EbYUhFLqHIm6ckEAp_xVgcJhj9rr_qgCJPZr_1dobST9k9RVg/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxaW_PjAMiR42Lckhca_HU3Wjc_G5eMiHYnIlEwjncz7SrrGtLE4HadnlGBnDP2VXk2-A/exec";
         const OSRM_URL = "https://router.project-osrm.org/route/v1/driving/";
 
         // =========================================================
@@ -688,14 +688,13 @@
         let resolverModalGPS = null;
 
         // =========================================================
-        // HELPERS UNIVERSALES (compatibilidad con headers en cualquier case)
+        // HELPERS UNIVERSALES
         // =========================================================
         function getVal(obj, ...keys) {
             if (!obj) return '';
             for (const k of keys) {
                 if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
             }
-            // Intentar case-insensitive
             const objKeys = Object.keys(obj);
             for (const k of keys) {
                 const found = objKeys.find(o => o.toLowerCase() === k.toLowerCase());
@@ -707,6 +706,12 @@
         function parseFloatSafe(v) {
             if (v === null || v === undefined || v === '') return NaN;
             return parseFloat(String(v).replace(',', '.'));
+        }
+
+        function esValidoId(v) {
+            if (!v) return false;
+            const s = String(v).trim().toLowerCase();
+            return s !== '' && s !== 'undefined' && s !== 'null' && s !== 'nan';
         }
 
         // =========================================================
@@ -818,7 +823,7 @@
         }
 
         // =========================================================
-        // CARGAR DATOS CON NORMALIZACIÓN DE CAMPOS
+        // CARGAR DATOS
         // =========================================================
         async function cargarDatosDesdeSheets() {
             try {
@@ -828,7 +833,6 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    // Normalizar productos
                     productos = (data.productos || []).map(p => {
                         const norm = {
                             id: getVal(p, 'id'),
@@ -847,7 +851,6 @@
                             rfid: getVal(p, 'rfid'),
                             ultimaActualizacion: getVal(p, 'ultimaActualizacion')
                         };
-                        // Migración EAN automática
                         if (!norm.ean13) {
                             const producto5 = codigoA5Digitos(norm.codigo || "00000");
                             norm.ean13 = construirEAN13("786", "1234", producto5);
@@ -857,14 +860,13 @@
                         return norm;
                     });
 
-                    // Normalizar eventos
                     eventos = (data.eventos || []).map(e => ({
                         idEvento: getVal(e, 'idEvento', 'idevento'),
                         fechaHora: getVal(e, 'fechaHora', 'fechahora'),
                         idProducto: getVal(e, 'idProducto', 'idproducto'),
                         producto: getVal(e, 'producto'),
-                        tipoIdentificacion: getVal(e, 'tipoIdentificacion', 'tipoidentificacion'),
-                        codigoLeido: getVal(e, 'codigoLeido', 'codigoleido'),
+                        tipoIdentificacion: getVal(e, 'tipoIdentificacion'),
+                        codigoLeido: getVal(e, 'codigoLeido'),
                         evento: getVal(e, 'evento'),
                         ubicacion: getVal(e, 'ubicacion'),
                         actor: getVal(e, 'actor'),
@@ -879,10 +881,9 @@
                         validacion_geo: getVal(e, 'validacion_geo')
                     }));
 
-                    // Normalizar ubicaciones
                     if (data.ubicaciones) {
                         ubicaciones = data.ubicaciones.map(u => ({
-                            id_ubicacion: getVal(u, 'id_ubicacion', 'id', 'ID'),
+                            id_ubicacion: getVal(u, 'id_ubicacion', 'id', 'ID', 'id_ubicaciones'),
                             nombre: getVal(u, 'nombre', 'Nombre'),
                             tipo: getVal(u, 'tipo', 'Tipo'),
                             direccion: getVal(u, 'direccion', 'Direccion', 'Dirección'),
@@ -892,6 +893,7 @@
                             padre_id: getVal(u, 'padre_id', 'padre'),
                             activo: getVal(u, 'activo', 'Activo')
                         }));
+                        console.log("📍 Ubicaciones cargadas:", ubicaciones);
                     }
 
                     actualizarEstadisticas();
@@ -921,21 +923,30 @@
             const lote = document.getElementById("loteProducto").value.trim();
             const cantidad = document.getElementById("cantidadProducto").value;
             const vencimiento = document.getElementById("vencimientoProducto").value;
-            const origen = document.getElementById("origenProducto").value;
-            const destino = document.getElementById("destinoProducto").value;
-            const ubicacion = document.getElementById("ubicacionProducto").value;
+            const origenRaw = document.getElementById("origenProducto").value;
+            const destinoRaw = document.getElementById("destinoProducto").value;
+            const ubicacionRaw = document.getElementById("ubicacionProducto").value;
             const pais = document.getElementById("paisEAN").value.trim();
             const empresa = document.getElementById("empresaEAN").value.trim();
             const producto5Input = document.getElementById("productoEAN").value.trim();
+
+            // Diagnóstico en consola
+            console.log("🔍 Valores del formulario:", {
+                codigo, nombre, categoria, lote, cantidad,
+                origen: origenRaw, destino: destinoRaw, ubicacion: ubicacionRaw
+            });
 
             if (!codigo || !nombre || !categoria || !lote || !cantidad) {
                 mostrarMensajeProducto("Complete todos los campos obligatorios.", false);
                 return;
             }
-            if (!origen || !destino || !ubicacion) {
-                mostrarMensajeProducto("Seleccione Origen, Destino y Ubicación actual.", false);
+
+            // Validación robusta de ubicaciones
+            if (!esValidoId(origenRaw) || !esValidoId(destinoRaw) || !esValidoId(ubicacionRaw)) {
+                mostrarMensajeProducto("Seleccione Origen, Destino y Ubicación actual correctamente.", false);
                 return;
             }
+
             if (!/^\d{3}$/.test(pais) || !/^\d{4}$/.test(empresa)) {
                 mostrarMensajeProducto("País (3 dígitos) y empresa (4 dígitos) son obligatorios.", false);
                 return;
@@ -966,9 +977,9 @@
                 lote,
                 cantidad: Number(cantidad),
                 vencimiento: vencimiento || "No aplica",
-                origen,
-                destino,
-                ubicacion,
+                origen: String(origenRaw).trim(),
+                destino: String(destinoRaw).trim(),
+                ubicacion: String(ubicacionRaw).trim(),
                 tipoIdentificacion: "Pendiente",
                 codigoGenerado: ean13,
                 rfid: null,
@@ -1162,7 +1173,10 @@
             const observacion = document.getElementById("observacionEvento").value.trim();
             const modoCaptura = document.getElementById("modoCaptura").value;
 
-            if (!ubicacionDeclarada || !actor) { alert("Complete ubicación y responsable."); return; }
+            if (!esValidoId(ubicacionDeclarada) || !actor) {
+                alert("Complete ubicación y responsable.");
+                return;
+            }
 
             document.getElementById("infoGPS").style.display = "block";
             document.getElementById("estadoGPS").textContent = "Capturando posición...";
@@ -1171,7 +1185,7 @@
 
             if (modoCaptura === "manual_ubicacion") {
                 const ubId = document.getElementById("ubicacionCaptura").value;
-                if (!ubId) {
+                if (!esValidoId(ubId)) {
                     alert("Selecciona una ubicación preestablecida.");
                     document.getElementById("infoGPS").style.display = "none";
                     return;
@@ -1247,11 +1261,11 @@
                 tipoIdentificacion: tipoLectura,
                 codigoLeido: codigoLeido,
                 evento: evento,
-                ubicacion: ubicacionDeclarada,
+                ubicacion: String(ubicacionDeclarada).trim(),
                 actor: actor,
                 observacion: observacion,
                 estado: "Exitoso",
-                id_ubicacion_declarada: ubicacionDeclarada,
+                id_ubicacion_declarada: String(ubicacionDeclarada).trim(),
                 lat_capturada: lat,
                 lon_capturada: lon,
                 precision_m: precision,
@@ -1388,7 +1402,7 @@
                 const data = await response.json();
                 if (data.success) {
                     ubicaciones = (data.ubicaciones || []).map(u => ({
-                        id_ubicacion: getVal(u, 'id_ubicacion', 'id', 'ID'),
+                        id_ubicacion: getVal(u, 'id_ubicacion', 'id', 'ID', 'id_ubicaciones'),
                         nombre: getVal(u, 'nombre', 'Nombre'),
                         tipo: getVal(u, 'tipo', 'Tipo'),
                         direccion: getVal(u, 'direccion', 'Direccion', 'Dirección'),
@@ -1398,6 +1412,7 @@
                         padre_id: getVal(u, 'padre_id', 'padre'),
                         activo: getVal(u, 'activo', 'Activo')
                     }));
+                    console.log("📍 Ubicaciones procesadas:", ubicaciones);
                     cargarTablaUbicaciones();
                     actualizarSelectoresUbicacion();
                     mostrarMensajeUbicacion("✅ " + ubicaciones.length + " ubicaciones cargadas.", true);
@@ -1563,16 +1578,25 @@
                 const select = document.getElementById(id);
                 if (!select) return;
                 const valorActual = select.value;
+
                 select.innerHTML = id === "padreUbicacion"
                     ? '<option value="">Sin padre</option>'
                     : (id === "ubicacionCaptura"
                         ? '<option value="">-- Seleccione ubicación --</option>'
                         : '<option value="">Seleccione ubicación</option>');
+
                 ubicaciones.forEach(u => {
+                    const idVal = u.id_ubicacion;
+                    // ⚠️ VALIDACIÓN CRÍTICA: ignorar ubicaciones sin ID válido
+                    if (!esValidoId(idVal)) {
+                        console.warn("⚠️ Ubicación sin id_ubicacion válido:", u);
+                        return;
+                    }
+
                     const option = document.createElement("option");
-                    option.value = u.id_ubicacion;
+                    option.value = String(idVal).trim();
                     option.textContent = (u.nombre || '?') + " (" + (u.tipo || '?') + ")";
-                    if (u.id_ubicacion === valorActual) option.selected = true;
+                    if (String(idVal).trim() === String(valorActual).trim()) option.selected = true;
                     select.appendChild(option);
                 });
             });
@@ -2223,7 +2247,7 @@
         // INIT
         // =========================================================
         async function init() {
-            console.log("🚀 Inicializando LogiTrace v1.6...");
+            console.log("🚀 Inicializando LogiTrace v1.6.1...");
             try {
                 await cargarUbicaciones();
                 await cargarDatosDesdeSheets();
@@ -2242,7 +2266,7 @@
                     if (el) el.addEventListener("input", actualizarPreviewEAN);
                 });
 
-                console.log("✅ App v1.6 lista");
+                console.log("✅ App v1.6.1 lista");
             } catch (error) {
                 console.error("❌ Error init:", error);
             }
