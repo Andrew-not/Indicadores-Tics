@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiTrace UPEC v1.7</title>
+    <title>LogiTrace UPEC v2.0</title>
 
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -16,145 +17,801 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 
     <style>
+        /* =========================================================
+           TEMA OSCURO MODERNO - LogiTrace v2.0
+           ========================================================= */
+        :root {
+            --bg-primary: #0f1729;
+            --bg-secondary: #151b3d;
+            --bg-card: #1a2347;
+            --bg-card-hover: #222c5a;
+            --bg-sidebar: #0a0f24;
+
+            --gradient-blue: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            --gradient-purple: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --gradient-cyan: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            --gradient-green: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+            --gradient-orange: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+            --gradient-red: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-orange: #f97316;
+            --accent-red: #ef4444;
+            --accent-pink: #ec4899;
+
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            --border-color: rgba(99, 102, 241, 0.15);
+            --shadow-glow: 0 0 30px rgba(99, 102, 241, 0.15);
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f0fdfa; }
-        header { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 20px; text-align: center; }
-        header h1 { font-size: 2rem; }
-        nav { background: #059669; padding: 10px; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; position: sticky; top: 0; z-index: 100; }
-        nav button { background: rgba(255, 255, 255, 0.9); color: #059669; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: 0.3s; }
-        nav button:hover { transform: scale(1.05); }
-        nav button.active { background: white; color: #059669; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
-        main { max-width: 1200px; margin: 15px auto; padding: 10px; }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* HEADER */
+        header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            border-bottom: 1px solid var(--border-color);
+            color: white;
+            padding: 22px 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+            animation: pulse-glow 8s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        header h1 {
+            font-size: 1.9rem;
+            position: relative;
+            background: linear-gradient(135deg, #ffffff, #c7d2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        header p { position: relative; color: #a5b4fc; font-size: 0.9rem; margin-top: 4px; }
+
+        /* NAV */
+        nav {
+            background: var(--bg-sidebar);
+            padding: 12px 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(20px);
+        }
+        nav button {
+            background: rgba(99, 102, 241, 0.08);
+            color: var(--text-secondary);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 9px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        nav button:hover {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+        }
+        nav button.active {
+            background: var(--gradient-purple);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 6px 24px rgba(139, 92, 246, 0.5);
+        }
+
+        main { max-width: 1300px; margin: 20px auto; padding: 15px; }
         .seccion { display: none; }
-        .seccion.activa { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .seccion.activa { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
-        h2 { color: #059669; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; font-size: 1.4rem; }
-        h3 { color: #059669; }
-        label { font-weight: 600; display: block; margin-top: 10px; font-size: 0.9rem; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 5px; margin-bottom: 10px; font-size: 15px; }
-        input:focus, select:focus { border-color: #10b981; outline: none; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
-        small.hint { color: #64748b; font-size: 0.75rem; display: block; margin-top: -5px; margin-bottom: 8px; }
+        /* CARDS */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 22px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), var(--shadow-glow);
+            transition: all 0.3s;
+        }
+        .card:hover { border-color: rgba(139, 92, 246, 0.3); }
+        h2 {
+            color: var(--text-primary);
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        h2::before {
+            content: '';
+            width: 4px;
+            height: 22px;
+            background: var(--gradient-purple);
+            border-radius: 4px;
+        }
+        h3 { color: var(--text-primary); font-size: 1rem; }
 
-        button { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; font-size: 0.9rem; margin: 3px; }
-        .btn-principal { background: #059669; color: white; }
-        .btn-principal:hover { background: #10b981; transform: translateY(-2px); }
-        .btn-verde { background: #10b981; color: white; }
-        .btn-verde:hover { background: #059669; transform: translateY(-2px); }
-        .btn-rojo { background: #ef4444; color: white; }
-        .btn-rojo:hover { background: #dc2626; transform: translateY(-2px); }
-        .btn-naranja { background: #f97316; color: white; }
-        .btn-naranja:hover { background: #ea580c; transform: translateY(-2px); }
-        .btn-azul { background: #3b82f6; color: white; }
-        .btn-azul:hover { background: #2563eb; transform: translateY(-2px); }
-        .btn-secundario { background: #64748b; color: white; }
-        .btn-secundario:hover { background: #475569; transform: translateY(-2px); }
+        /* FORM */
+        label { font-weight: 600; display: block; margin-top: 10px; font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-purple);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+            background: var(--bg-card);
+        }
+        input::placeholder, textarea::placeholder { color: var(--text-muted); }
+        select option { background: var(--bg-card); color: var(--text-primary); }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
-        .estadisticas { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
-        .estadistica { background: white; padding: 15px; text-align: center; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .numero { font-size: 2rem; font-weight: 700; color: #059669; }
-        .titulo-estadistica { font-size: 0.85rem; color: #64748b; }
+        small.hint { color: var(--text-muted); font-size: 0.72rem; display: block; margin-top: -4px; margin-bottom: 8px; }
 
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; }
-        th { background: #059669; color: white; padding: 10px; text-align: left; }
-        td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
-        tr:hover { background: #f0fdfa; }
+        /* BUTTONS */
+        button {
+            padding: 11px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.88rem;
+            margin: 3px;
+            font-family: inherit;
+        }
+        .btn-principal { background: var(--gradient-purple); color: white; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); }
+        .btn-principal:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6); }
+        .btn-verde { background: var(--gradient-green); color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+        .btn-verde:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6); }
+        .btn-rojo { background: var(--gradient-red); color: white; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+        .btn-rojo:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(239, 68, 68, 0.6); }
+        .btn-naranja { background: var(--gradient-orange); color: white; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4); }
+        .btn-naranja:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(249, 115, 22, 0.6); }
+        .btn-azul { background: var(--gradient-blue); color: white; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+        .btn-azul:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6); }
+        .btn-secundario { background: rgba(100, 116, 139, 0.2); color: var(--text-primary); border: 1px solid rgba(100, 116, 139, 0.3); }
+        .btn-secundario:hover { background: rgba(100, 116, 139, 0.4); transform: translateY(-2px); }
 
-        .resultado { padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #059669; background: #f8fafc; }
-        .exito { border-left-color: #10b981; background: #dcfce7; }
-        .error { border-left-color: #ef4444; background: #fee2e2; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
 
-        .codigo-box { border: 1px solid #cbd5e1; padding: 15px; border-radius: 10px; text-align: center; background: #f8fafc; }
-        .codigo-box svg, .codigo-box canvas { max-width: 100%; margin: 10px auto; }
+        /* ESTADÍSTICAS - NUEVO DISEÑO CON GRADIENTES */
+        .estadisticas { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+        .estadistica {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-hover) 100%);
+            padding: 20px;
+            text-align: left;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            min-height: 120px;
+        }
+        .estadistica::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 3px;
+            background: var(--gradient-purple);
+        }
+        .estadistica.azul::before { background: var(--gradient-blue); }
+        .estadistica.cyan::before { background: var(--gradient-cyan); }
+        .estadistica.verde::before { background: var(--gradient-green); }
+        .estadistica.naranja::before { background: var(--gradient-orange); }
+        .estadistica.rojo::before { background: var(--gradient-red); }
+        .estadistica:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(99, 102, 241, 0.2); }
+        .estadistica .titulo-estadistica {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .estadistica .numero {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .estadistica .subtitulo { font-size: 0.75rem; color: var(--accent-green); font-weight: 600; }
 
-        .rfid-detectado { background: #dcfce7; border: 3px solid #10b981; padding: 25px; border-radius: 12px; text-align: center; font-size: 18px; font-weight: bold; margin-top: 15px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+        /* TABLES */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            margin-top: 10px;
+        }
+        th {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.08);
+            color: var(--text-primary);
+        }
+        tr:hover { background: rgba(99, 102, 241, 0.05); }
 
-        .categoria-card { background: #e0f2fe; padding: 15px; border-radius: 10px; border-left: 4px solid #059669; margin-bottom: 10px; }
+        /* RESULTADO */
+        .resultado {
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 15px;
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent-blue);
+            color: var(--text-primary);
+        }
+        .exito { border-left-color: var(--accent-green); background: rgba(16, 185, 129, 0.1); }
+        .error { border-left-color: var(--accent-red); background: rgba(239, 68, 68, 0.1); }
 
-        #reader { width: 100%; max-width: 450px; margin: 15px auto; border-radius: 12px; overflow: hidden; }
+        /* CÓDIGO BOX */
+        .codigo-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 14px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .codigo-box:hover { border-color: rgba(139, 92, 246, 0.3); }
+        .codigo-box svg, .codigo-box canvas {
+            max-width: 100%;
+            margin: 12px auto;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+        }
 
-        .estado-badge { display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; color: white; }
-        .estado-ok { background: #047857; }
-        .estado-fuera { background: #b91c1c; }
-        .estado-baja { background: #c2410c; }
-        .estado-sin-gps { background: #334155; }
+        /* RFID */
+        .rfid-detectado {
+            background: rgba(16, 185, 129, 0.15);
+            border: 2px solid var(--accent-green);
+            padding: 25px;
+            border-radius: 14px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 15px;
+            color: var(--text-primary);
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
 
-        .mensaje { padding: 12px; margin-top: 12px; border-radius: 8px; display: none; text-align: center; font-weight: 500; }
-        .mensaje.exito { background: #d1fae5; color: #065f46; }
-        .mensaje.error { background: #fee2e2; color: #991b1b; }
+        /* CATEGORIA CARD */
+        .categoria-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 4px solid var(--accent-purple);
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            color: var(--text-primary);
+        }
+        .categoria-card:hover { transform: translateX(5px); background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2)); }
 
-        footer { text-align: center; padding: 20px; color: #64748b; margin-top: 30px; }
+        /* READER */
+        #reader {
+            width: 100%;
+            max-width: 450px;
+            margin: 15px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid var(--border-color);
+        }
 
-        .mapa-full-container { position: relative; width: 100%; height: calc(100vh - 150px); min-height: 500px; overflow: hidden; }
-        #mapa-full { width: 100%; height: 100%; background: #e8f4f8; }
+        /* BADGES */
+        .estado-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .estado-ok { background: var(--gradient-green); }
+        .estado-fuera { background: var(--gradient-red); }
+        .estado-baja { background: var(--gradient-orange); }
+        .estado-sin-gps { background: rgba(100, 116, 139, 0.6); }
 
-        .mapa-filtros-superpuestos { position: absolute; top: 20px; left: 20px; right: 20px; z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 12px 18px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25); display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+        /* MENSAJES */
+        .mensaje {
+            padding: 14px;
+            margin-top: 12px;
+            border-radius: 10px;
+            display: none;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .mensaje.exito { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .mensaje.error { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-muted);
+            margin-top: 40px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+        }
+
+        /* MAPA */
+        .mapa-full-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 150px);
+            min-height: 500px;
+            overflow: hidden;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+        #mapa-full { width: 100%; height: 100%; }
+
+        .mapa-filtros-superpuestos {
+            position: absolute;
+            top: 20px; left: 20px; right: 20px;
+            z-index: 1000;
+            background: rgba(21, 27, 61, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 14px 20px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
         .mapa-filtros-superpuestos > div { flex: 1; min-width: 140px; }
-        .mapa-filtros-superpuestos label { font-size: 0.75rem; margin: 0 0 3px 0; }
-        .mapa-filtros-superpuestos select { padding: 7px 10px; font-size: 0.85rem; margin: 0; }
+        .mapa-filtros-superpuestos label { font-size: 0.7rem; margin: 0 0 4px 0; color: var(--text-muted); }
+        .mapa-filtros-superpuestos select { padding: 8px 12px; font-size: 0.85rem; margin: 0; }
 
-        .mapa-leyenda-superpuesta { position: absolute; bottom: 20px; left: 20px; z-index: 1000; background: rgba(255, 255, 255, 0.95); padding: 10px 16px; border-radius: 10px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2); display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.72rem; font-weight: 600; }
+        .mapa-leyenda-superpuesta {
+            position: absolute;
+            bottom: 20px; left: 20px;
+            z-index: 1000;
+            background: rgba(21, 27, 61, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
         .mapa-leyenda-superpuesta span { display: flex; align-items: center; gap: 5px; }
-        .mapa-leyenda-color { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+        .mapa-leyenda-color { width: 12px; height: 12px; border-radius: 50%; display: inline-block; border: 2px solid white; }
 
-        .mapa-zoom-buttons { position: absolute; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 5px; }
-        .mapa-zoom-buttons button { width: 38px; height: 38px; border-radius: 8px; background: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); font-size: 18px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; }
+        .mapa-zoom-buttons {
+            position: absolute;
+            bottom: 20px; right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .mapa-zoom-buttons button {
+            width: 42px; height: 42px;
+            border-radius: 10px;
+            background: rgba(21, 27, 61, 0.95);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+            transition: all 0.3s;
+        }
+        .mapa-zoom-buttons button:hover { background: var(--accent-purple); transform: scale(1.05); }
 
-        .mini-mapa-ubicacion { width: 100%; height: 260px; border-radius: 10px; margin-top: 8px; border: 2px solid #e2e8f0; }
-        .coord-chip { display: inline-block; background: #f0fdfa; color: #065f46; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin: 4px 4px 0 0; border: 1px solid #a7f3d0; }
-        #mapa-trazabilidad { width: 100%; height: 500px; border-radius: 12px; margin-top: 15px; }
+        /* MINI MAPA */
+        .mini-mapa-ubicacion {
+            width: 100%;
+            height: 280px;
+            border-radius: 12px;
+            margin-top: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .coord-chip {
+            display: inline-block;
+            background: rgba(139, 92, 246, 0.15);
+            color: #c4b5fd;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 4px 4px 0 0;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        #mapa-trazabilidad {
+            width: 100%;
+            height: 500px;
+            border-radius: 12px;
+            margin-top: 15px;
+            border: 1px solid var(--border-color);
+        }
         .numero-marcador { background: transparent; border: none; }
-        .traza-item { background: #f8fafc; border-left: 4px solid #059669; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; }
-        .traza-item b { color: #059669; }
+        .traza-item {
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--accent-purple);
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+        .traza-item b { color: #a5b4fc; }
 
-        .modal-gps { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; padding: 15px; }
+        /* MODAL */
+        .modal-gps {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(6px);
+            z-index: 5000;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
         .modal-gps.activo { display: flex; }
-        .modal-gps-contenido { background: white; border-radius: 14px; max-width: 700px; width: 100%; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
-        #mapa-modal { width: 100%; height: 340px; border-radius: 10px; margin: 12px 0; }
+        .modal-gps-contenido {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            max-width: 750px;
+            width: 100%;
+            padding: 24px;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.7);
+            color: var(--text-primary);
+        }
+        #mapa-modal {
+            width: 100%;
+            height: 340px;
+            border-radius: 12px;
+            margin: 12px 0;
+            border: 1px solid var(--border-color);
+        }
 
-        .camion-icono { background: #0f172a; color: white; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-        .meta-icono { background: #b91c1c; color: white; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        /* ICONOS */
+        .camion-icono {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+        }
+        .meta-icono {
+            background: var(--gradient-red);
+            color: white;
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+        }
 
-        .preview-ean { background: linear-gradient(135deg, #f0fdfa, #dcfce7); padding: 15px; border-radius: 10px; border: 2px dashed #10b981; margin: 10px 0; text-align: center; }
-        .preview-ean .titulo { color: #64748b; font-size: 0.8rem; margin-bottom: 5px; }
-        .preview-ean .valor { font-family: 'Courier New', monospace; font-size: 1.6rem; font-weight: 700; color: #059669; letter-spacing: 3px; }
-        .preview-ean .desglose { font-size: 0.7rem; color: #64748b; margin-top: 8px; }
-        .preview-ean .desglose span { display: inline-block; padding: 2px 6px; margin: 0 2px; border-radius: 4px; }
-        .des-pais { background: #dbeafe; color: #1e40af; }
-        .des-empresa { background: #d1fae5; color: #065f46; }
-        .des-producto { background: #fed7aa; color: #9a3412; }
-        .des-verif { background: #fecaca; color: #991b1b; }
+        /* PREVIEW EAN */
+        .preview-ean {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            padding: 18px;
+            border-radius: 14px;
+            border: 1px dashed rgba(139, 92, 246, 0.4);
+            margin: 12px 0;
+            text-align: center;
+        }
+        .preview-ean .titulo { color: var(--text-secondary); font-size: 0.75rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .preview-ean .valor {
+            font-family: 'Courier New', monospace;
+            font-size: 1.7rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, #a5b4fc, #c4b5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .preview-ean .desglose { font-size: 0.7rem; color: var(--text-muted); margin-top: 10px; }
+        .preview-ean .desglose span { display: inline-block; padding: 3px 8px; margin: 0 2px; border-radius: 6px; font-weight: 600; }
+        .des-pais { background: rgba(59, 130, 246, 0.25); color: #93c5fd; }
+        .des-empresa { background: rgba(16, 185, 129, 0.25); color: #6ee7b7; }
+        .des-producto { background: rgba(249, 115, 22, 0.25); color: #fdba74; }
+        .des-verif { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
 
-        .caja-info-ruta { position: absolute; top: 20px; right: 20px; z-index: 1000; background: white; border-radius: 12px; padding: 16px 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.3); min-width: 240px; border-left: 5px solid #0f172a; display: none; }
+        /* CAJA INFO RUTA */
+        .caja-info-ruta {
+            position: absolute;
+            top: 20px; right: 20px;
+            z-index: 1000;
+            background: rgba(21, 27, 61, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 18px 22px;
+            min-width: 250px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            display: none;
+            color: var(--text-primary);
+        }
         .caja-info-ruta.visible { display: block; animation: slideInRight 0.4s; }
-        @keyframes slideInRight { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .caja-info-ruta .titulo { font-size: 0.75rem; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-        .caja-info-ruta .fila { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+        @keyframes slideInRight {
+            from { transform: translateX(30px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .caja-info-ruta .titulo {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+        }
+        .caja-info-ruta .fila { display: flex; align-items: center; gap: 12px; margin: 10px 0; }
         .caja-info-ruta .fila .icono { font-size: 22px; }
-        .caja-info-ruta .fila .dato { font-size: 1.15rem; font-weight: 700; color: #0f172a; }
-        .caja-info-ruta .fila .dato small { font-size: 0.75rem; color: #64748b; font-weight: 500; display: block; }
-        .caja-info-ruta .estado-ruta { margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 6px; }
-        .spinner-ruta { width: 12px; height: 12px; border: 2px solid #cbd5e1; border-top-color: #0f172a; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
+        .caja-info-ruta .fila .dato { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); }
+        .caja-info-ruta .fila .dato small { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; display: block; }
+        .caja-info-ruta .estado-ruta {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .spinner-ruta {
+            width: 12px; height: 12px;
+            border: 2px solid rgba(148, 163, 184, 0.3);
+            border-top-color: var(--accent-purple);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* =========================================================
+           DASHBOARD - NUEVO DISEÑO CON GRÁFICAS
+           ========================================================= */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .dashboard-header h2 { margin-bottom: 0; }
+
+        .filtros-dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .filtros-dashboard select {
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            margin: 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            min-width: 130px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .chart-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-hover) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            transition: all 0.3s;
+        }
+        .chart-card:hover { border-color: rgba(139, 92, 246, 0.3); transform: translateY(-3px); }
+        .chart-card.full-width { grid-column: 1 / -1; }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .chart-titulo {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-subtitulo {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        .chart-canvas-container {
+            position: relative;
+            height: 260px;
+            width: 100%;
+        }
+
+        .chart-canvas-container.tall { height: 320px; }
+
+        /* Stat cards especiales para dashboard */
+        .dashboard-stat {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-hover) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .dashboard-stat::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--gradient-purple);
+        }
+        .dashboard-stat.blue::before { background: var(--gradient-blue); }
+        .dashboard-stat.cyan::before { background: var(--gradient-cyan); }
+        .dashboard-stat.green::before { background: var(--gradient-green); }
+        .dashboard-stat.orange::before { background: var(--gradient-orange); }
+        .dashboard-stat.red::before { background: var(--gradient-red); }
+
+        .dashboard-stat:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(99, 102, 241, 0.2); }
+        .dashboard-stat .stat-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .dashboard-stat .stat-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1;
+            background: linear-gradient(135deg, #ffffff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .dashboard-stat .stat-delta {
+            font-size: 0.75rem;
+            color: var(--accent-green);
+            font-weight: 600;
+            margin-top: 6px;
+        }
+        .dashboard-stat .stat-icon {
+            position: absolute;
+            top: 15px; right: 15px;
+            font-size: 32px;
+            opacity: 0.15;
+        }
+
+        /* RESPONSIVE */
+        @media(max-width: 900px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
         @media(max-width: 768px) {
-            nav button { flex: 1 0 45%; font-size: 0.8rem; padding: 6px 10px; }
+            header h1 { font-size: 1.4rem; }
+            nav button { flex: 1 0 45%; font-size: 0.75rem; padding: 8px 10px; }
             .grid { grid-template-columns: 1fr; }
             .estadisticas { grid-template-columns: 1fr 1fr; }
             .mapa-full-container { height: calc(100vh - 130px); }
             .mapa-filtros-superpuestos { flex-direction: column; align-items: stretch; }
             #mapa-trazabilidad { height: 380px; }
             .caja-info-ruta { top: auto; bottom: 70px; right: 10px; left: 10px; min-width: auto; }
+            .dashboard-header { flex-direction: column; align-items: stretch; }
+            .filtros-dashboard { flex-direction: column; }
+            .filtros-dashboard select { width: 100%; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>📦 LogiTrace UPEC v1.7</h1>
+        <h1>📦 LogiTrace UPEC v2.0</h1>
         <p>Trazabilidad Logística · EAN-13 · QR · RFID · Ruta Real OSRM</p>
     </header>
 
@@ -173,6 +830,7 @@
 
     <main>
 
+        <!-- INICIO -->
         <section id="inicio" class="seccion activa">
             <div class="card">
                 <h2>Panel principal</h2>
@@ -180,28 +838,33 @@
                     <div class="estadistica">
                         <div class="titulo-estadistica">Productos</div>
                         <div class="numero" id="totalProductos">0</div>
+                        <div class="subtitulo">Registrados</div>
                     </div>
-                    <div class="estadistica">
+                    <div class="estadistica azul">
                         <div class="titulo-estadistica">Cantidad total</div>
                         <div class="numero" id="totalCantidad">0</div>
+                        <div class="subtitulo">Unidades</div>
                     </div>
-                    <div class="estadistica">
+                    <div class="estadistica cyan">
                         <div class="titulo-estadistica">Categorías</div>
                         <div class="numero" id="totalCategorias">0</div>
+                        <div class="subtitulo">Activas</div>
                     </div>
-                    <div class="estadistica">
+                    <div class="estadistica verde">
                         <div class="titulo-estadistica">Eventos</div>
                         <div class="numero" id="totalEventos">0</div>
+                        <div class="subtitulo">Registrados</div>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- PRODUCTOS -->
         <section id="productos" class="seccion">
             <div class="card">
                 <h2>📦 Registro de producto</h2>
 
-                <h3 style="margin-top:10px; color:#64748b; font-size:1rem;">Datos del producto</h3>
+                <h3 style="margin-top:10px; color:#94a3b8; font-size:0.95rem;">Datos del producto</h3>
                 <div class="grid">
                     <div>
                         <label>Nombre *</label>
@@ -233,9 +896,9 @@
                     </div>
                 </div>
 
-                <h3 style="margin-top:20px; color:#64748b; font-size:1rem;">Estructura EAN-13</h3>
+                <h3 style="margin-top:20px; color:#94a3b8; font-size:0.95rem;">Estructura EAN-13</h3>
                 <p style="color:#64748b; font-size:0.85rem; margin-bottom:10px;">
-                    El operario ingresa los dígitos, el verificador se calcula automáticamente.
+                    Ingresa los dígitos base, el verificador se calcula automáticamente.
                 </p>
                 <div class="grid">
                     <div>
@@ -251,7 +914,7 @@
                     <div>
                         <label>Producto (5 dígitos) *</label>
                         <input type="text" id="productoEAN" placeholder="00001" maxlength="5">
-                        <small class="hint">Código único del producto (00001, 00002...)</small>
+                        <small class="hint">Código único del producto</small>
                     </div>
                 </div>
 
@@ -266,7 +929,7 @@
                     </div>
                 </div>
 
-                <h3 style="margin-top:20px; color:#64748b; font-size:1rem;">Ubicaciones logísticas</h3>
+                <h3 style="margin-top:20px; color:#94a3b8; font-size:0.95rem;">Ubicaciones logísticas</h3>
                 <div class="grid">
                     <div>
                         <label>Origen *</label>
@@ -286,6 +949,7 @@
             </div>
         </section>
 
+        <!-- IDENTIFICADORES -->
         <section id="identificadores" class="seccion">
             <div class="card">
                 <h2>🏷 Generación de identificadores</h2>
@@ -297,22 +961,23 @@
                 <div class="codigo-box">
                     <h3>EAN-13</h3>
                     <svg id="barcode"></svg>
-                    <p id="valorBarcode" style="font-family:monospace; font-weight:bold;"></p>
+                    <p id="valorBarcode" style="font-family:monospace; font-weight:bold; color:#a5b4fc;"></p>
                     <button class="btn-secundario" onclick="imprimirElemento('barcode')">Imprimir</button>
                 </div>
                 <div class="codigo-box">
                     <h3>QR (con JSON)</h3>
                     <div id="qrcode"></div>
-                    <p id="valorQR" style="font-family:monospace; font-size:0.75rem;"></p>
+                    <p id="valorQR" style="font-family:monospace; font-size:0.75rem; color:#a5b4fc;"></p>
                     <button class="btn-secundario" onclick="imprimirQR()">Imprimir</button>
                 </div>
                 <div class="codigo-box">
                     <h3>RFID simulado (EPC)</h3>
-                    <h2 id="valorRFID" style="font-size:0.9rem; word-break:break-all;">---</h2>
+                    <h2 id="valorRFID" style="font-size:0.85rem; word-break:break-all; color:#a5b4fc;">---</h2>
                 </div>
             </div>
         </section>
 
+        <!-- LECTOR -->
         <section id="lector" class="seccion">
             <div class="card">
                 <h2>📷 Lector de códigos</h2>
@@ -359,7 +1024,7 @@
                     </div>
                 </div>
 
-                <h3 style="margin-top:15px; color:#64748b; font-size:1rem;">📡 Fuente de captura de posición</h3>
+                <h3 style="margin-top:15px; color:#94a3b8; font-size:0.95rem;">📡 Fuente de captura</h3>
                 <div class="grid">
                     <div>
                         <label>Modo de captura *</label>
@@ -378,12 +1043,13 @@
                 </div>
 
                 <button class="btn-verde" onclick="registrarEvento()">📌 Registrar evento</button>
-                <div id="infoGPS" style="margin-top:10px; padding:10px; background:#f1f5f9; border-radius:8px; display:none;">
+                <div id="infoGPS" style="margin-top:10px; padding:12px; background:var(--bg-secondary); border-radius:10px; display:none; border:1px solid var(--border-color); color:var(--text-primary);">
                     📍 Posición: <span id="estadoGPS">Esperando...</span>
                 </div>
             </div>
         </section>
 
+        <!-- RFID -->
         <section id="rfid" class="seccion">
             <div class="card">
                 <h2>📡 Simulación RFID</h2>
@@ -394,6 +1060,7 @@
             </div>
         </section>
 
+        <!-- UBICACIONES -->
         <section id="ubicaciones" class="seccion">
             <div class="card">
                 <h2>📍 Gestión de ubicaciones</h2>
@@ -461,6 +1128,7 @@
             </div>
         </section>
 
+        <!-- INVENTARIO -->
         <section id="inventario" class="seccion">
             <div class="card">
                 <h2>📊 Inventario</h2>
@@ -495,6 +1163,7 @@
             </div>
         </section>
 
+        <!-- TRAZABILIDAD -->
         <section id="eventos" class="seccion">
             <div class="card">
                 <h2>📜 Historial</h2>
@@ -542,6 +1211,7 @@
             </div>
         </section>
 
+        <!-- MAPA -->
         <section id="mapa" class="seccion" style="padding: 0; margin: 0; max-width: 100%;">
             <div class="mapa-full-container">
                 <div id="mapa-full"></div>
@@ -578,12 +1248,12 @@
                 </div>
 
                 <div class="mapa-leyenda-superpuesta">
-                    <span><span class="mapa-leyenda-color" style="background:#1e40af;"></span> Bodega</span>
-                    <span><span class="mapa-leyenda-color" style="background:#047857;"></span> Tienda / OK</span>
-                    <span><span class="mapa-leyenda-color" style="background:#b45309;"></span> Almacén</span>
-                    <span><span class="mapa-leyenda-color" style="background:#b91c1c;"></span> Fuera</span>
-                    <span><span class="mapa-leyenda-color" style="background:#c2410c;"></span> Baja</span>
-                    <span><span class="mapa-leyenda-color" style="background:#334155;"></span> Sin GPS</span>
+                    <span><span class="mapa-leyenda-color" style="background:#3b82f6;"></span> Bodega</span>
+                    <span><span class="mapa-leyenda-color" style="background:#10b981;"></span> Tienda / OK</span>
+                    <span><span class="mapa-leyenda-color" style="background:#f59e0b;"></span> Almacén</span>
+                    <span><span class="mapa-leyenda-color" style="background:#ef4444;"></span> Fuera</span>
+                    <span><span class="mapa-leyenda-color" style="background:#f97316;"></span> Baja</span>
+                    <span><span class="mapa-leyenda-color" style="background:#64748b;"></span> Sin GPS</span>
                 </div>
 
                 <div class="mapa-zoom-buttons">
@@ -594,32 +1264,133 @@
             </div>
         </section>
 
+        <!-- DASHBOARD - NUEVO -->
         <section id="dashboard" class="seccion">
             <div class="card">
-                <h2>📈 Dashboard</h2>
-                <div class="estadisticas">
+                <div class="dashboard-header">
+                    <h2>📈 Dashboard analítico</h2>
+                    <div class="filtros-dashboard">
+                        <select id="filtroRangoDash" onchange="actualizarDashboard()">
+                            <option value="7d">Últimos 7 días</option>
+                            <option value="30d" selected>Últimos 30 días</option>
+                            <option value="90d">Últimos 90 días</option>
+                            <option value="all">Todo el histórico</option>
+                        </select>
+                        <select id="filtroCategoriaDash" onchange="actualizarDashboard()">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                        <select id="filtroTipoDash" onchange="actualizarDashboard()">
+                            <option value="">Todos los eventos</option>
+                            <option value="Recepción">Recepción</option>
+                            <option value="Ingreso al almacén">Ingreso al almacén</option>
+                            <option value="Despacho">Despacho</option>
+                            <option value="Entrega">Entrega</option>
+                            <option value="Devolución">Devolución</option>
+                            <option value="Incidencia">Incidencia</option>
+                        </select>
+                        <button class="btn-principal" onclick="actualizarDashboard()">🔄 Actualizar</button>
+                    </div>
+                </div>
+
+                <!-- STATS PRINCIPALES -->
+                <div class="estadisticas" style="margin-top:20px;">
                     <div class="estadistica">
                         <div class="titulo-estadistica">Total eventos</div>
                         <div class="numero" id="totalEventosDashboard">0</div>
+                        <div class="subtitulo">en el periodo</div>
                     </div>
-                    <div class="estadistica">
+                    <div class="estadistica verde">
                         <div class="titulo-estadistica">✅ OK</div>
                         <div class="numero" id="eventosOK">0</div>
+                        <div class="subtitulo">dentro de geocerca</div>
                     </div>
-                    <div class="estadistica">
+                    <div class="estadistica rojo">
                         <div class="titulo-estadistica">⚠️ Fuera</div>
                         <div class="numero" id="eventosFuera">0</div>
+                        <div class="subtitulo">fuera de geocerca</div>
                     </div>
-                    <div class="estadistica">
+                    <div class="estadistica naranja">
                         <div class="titulo-estadistica">📊 % Fuera</div>
                         <div class="numero" id="porcentajeFuera">0%</div>
+                        <div class="subtitulo">tasa de excepción</div>
                     </div>
                 </div>
-                <div style="margin-top:15px;">
+
+                <!-- GRÁFICAS -->
+                <div class="dashboard-grid">
+
+                    <!-- Eventos por día -->
+                    <div class="chart-card full-width">
+                        <div class="chart-header">
+                            <div>
+                                <div class="chart-titulo">📅 Eventos por día</div>
+                                <div class="chart-subtitulo">Evolución temporal de la actividad</div>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-container tall">
+                            <canvas id="chartEventosPorDia"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Validación por categoría -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <div class="chart-titulo">✅ Validación por categoría</div>
+                                <div class="chart-subtitulo">Distribución OK / Fuera</div>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-container">
+                            <canvas id="chartPorCategoria"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Tipos de evento -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <div class="chart-titulo">📊 Tipos de evento</div>
+                                <div class="chart-subtitulo">Frecuencia por evento logístico</div>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-container">
+                            <canvas id="chartTiposEvento"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Fuentes de ubicación -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <div class="chart-titulo">📡 Fuentes de captura</div>
+                                <div class="chart-subtitulo">GPS vs Manual vs Mapa</div>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-container">
+                            <canvas id="chartFuentes"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Productos por categoría -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <div class="chart-titulo">📦 Productos por categoría</div>
+                                <div class="chart-subtitulo">Distribución del inventario</div>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-container">
+                            <canvas id="chartProductosCategoria"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- EXPORTACIÓN -->
+                <div style="margin-top:25px; padding-top:20px; border-top:1px solid var(--border-color);">
                     <button class="btn-principal" onclick="exportarGeoJSON('eventos')">📥 eventos.geojson</button>
                     <button class="btn-azul" onclick="exportarGeoJSON('ubicaciones')">📥 ubicaciones.geojson</button>
                     <button class="btn-verde" onclick="exportarGeoJSON('todos')">📥 Ambos</button>
-                    <button class="btn-secundario" onclick="actualizarDashboard()">🔄 Actualizar</button>
                 </div>
             </div>
         </section>
@@ -628,8 +1399,8 @@
 
     <div id="modalGPS" class="modal-gps">
         <div class="modal-gps-contenido">
-            <h3 style="color:#059669; margin-bottom:8px;">📍 Seleccionar posición manualmente</h3>
-            <p style="font-size:0.85rem;color:#64748b;">Haz clic en el mapa para marcar dónde ocurrió el evento.</p>
+            <h3 style="color:#a5b4fc; margin-bottom:8px;">📍 Seleccionar posición manualmente</h3>
+            <p style="font-size:0.85rem;color:#94a3b8;">Haz clic en el mapa para marcar dónde ocurrió el evento.</p>
             <div id="mapa-modal"></div>
             <div id="coords-seleccionadas" style="margin-bottom:10px;"></div>
             <button class="btn-principal" onclick="confirmarPuntoManual()">✅ Usar esta posición</button>
@@ -638,11 +1409,11 @@
     </div>
 
     <footer>
-        <p>LogiTrace UPEC v1.7 | Trazabilidad + Geolocalización + OSRM</p>
+        <p>LogiTrace UPEC v2.0 | Trazabilidad + Geolocalización + OSRM + Dashboard</p>
     </footer>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxoh8cTskAWwY627-u5qAzpeo-bNfgjPRYdTyKJSs_Nb3twBb32MnjCFTPG-tRWtICwuw/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxaW_PjAMiR42Lckhca_HU3Wjc_G5eMiHYnIlEwjncz7SrrGtLE4HadnlGBnDP2VXk2-A/exec";
         const OSRM_URL = "https://router.project-osrm.org/route/v1/driving/";
 
         let productos = [];
@@ -662,6 +1433,13 @@
         let mapaTrazabilidad = null;
         let coordenadasManual = null;
         let resolverModalGPS = null;
+
+        // Charts
+        let chartEventosPorDia = null;
+        let chartPorCategoria = null;
+        let chartTiposEvento = null;
+        let chartFuentes = null;
+        let chartProductosCategoria = null;
 
         function getVal(obj, ...keys) {
             if (!obj) return '';
@@ -746,7 +1524,7 @@
             cargarTablaUbicaciones();
 
             if (id === "mapa") setTimeout(() => { inicializarMapaFull(); actualizarMapaFull(); }, 500);
-            if (id === "dashboard") actualizarDashboard();
+            if (id === "dashboard") setTimeout(actualizarDashboard, 300);
             if (id === "ubicaciones") setTimeout(inicializarMiniMapaUbicacion, 300);
             if (id === "eventos") actualizarSelectorTrazabilidad();
             if (id === "productos") actualizarPreviewEAN();
@@ -842,6 +1620,7 @@
                     actualizarDashboard();
                     actualizarSelectorTrazabilidad();
                     actualizarFiltroProductoMapa();
+                    actualizarFiltroCategoriaDash();
                     return true;
                 }
                 return false;
@@ -849,6 +1628,21 @@
                 console.error("Error cargando datos:", error);
                 return false;
             }
+        }
+
+        function actualizarFiltroCategoriaDash() {
+            const sel = document.getElementById("filtroCategoriaDash");
+            if (!sel) return;
+            const categorias = [...new Set(productos.map(p => p.categoria).filter(Boolean))];
+            const valorActual = sel.value;
+            sel.innerHTML = '<option value="">Todas las categorías</option>';
+            categorias.forEach(cat => {
+                const op = document.createElement("option");
+                op.value = cat;
+                op.textContent = cat;
+                if (cat === valorActual) op.selected = true;
+                sel.appendChild(op);
+            });
         }
 
         function registrarProducto() {
@@ -873,12 +1667,11 @@
                 return;
             }
             if (!/^\d{3}$/.test(pais) || !/^\d{4}$/.test(empresa) || !/^\d{5}$/.test(producto5)) {
-                mostrarMensajeProducto("País (3 dígitos), empresa (4 dígitos) y producto (5 dígitos) son obligatorios.", false);
+                mostrarMensajeProducto("País (3), empresa (4) y producto (5 dígitos) son obligatorios.", false);
                 return;
             }
 
             const ean13 = construirEAN13(pais, empresa, producto5);
-
             if (!ean13) {
                 mostrarMensajeProducto("Error al generar EAN-13.", false);
                 return;
@@ -889,7 +1682,7 @@
             }
 
             const nuevoProducto = {
-                id: ean13,               // El EAN es el ID principal
+                id: ean13,
                 ean13,
                 nombre,
                 categoria,
@@ -919,6 +1712,7 @@
             actualizarSelectores();
             actualizarSelectorTrazabilidad();
             actualizarFiltroProductoMapa();
+            actualizarFiltroCategoriaDash();
             actualizarPreviewEAN();
             enviarProductoGoogleSheets(nuevoProducto);
         }
@@ -939,19 +1733,12 @@
             const ean13 = producto.ean13;
 
             JsBarcode("#barcode", ean13, {
-                format: "EAN13",
-                displayValue: true,
-                width: 2,
-                height: 70,
-                fontSize: 16,
-                margin: 10
+                format: "EAN13", displayValue: true, width: 2, height: 70, fontSize: 16, margin: 10
             });
             document.getElementById("valorBarcode").textContent = ean13;
 
             const qrData = JSON.stringify({
-                ean: ean13,
-                lote: producto.lote,
-                producto: producto.nombre
+                ean: ean13, lote: producto.lote, producto: producto.nombre
             });
             const contenedorQR = document.getElementById("qrcode");
             contenedorQR.innerHTML = "";
@@ -998,15 +1785,12 @@
             tipoLectura = tipo;
 
             let datosQR = null;
-            try {
-                if (codigo.startsWith("{")) datosQR = JSON.parse(codigo);
-            } catch (e) { }
+            try { if (codigo.startsWith("{")) datosQR = JSON.parse(codigo); } catch (e) { }
 
             const codigoBusqueda = datosQR && datosQR.ean ? datosQR.ean : codigo;
 
             const productosEncontrados = productos.filter(p =>
-                p.ean13 === codigoBusqueda ||
-                p.rfid === codigoBusqueda
+                p.ean13 === codigoBusqueda || p.rfid === codigoBusqueda
             );
 
             const fecha = new Date().toLocaleString();
@@ -1022,7 +1806,6 @@
                 document.getElementById("resultadoLectura").className = "resultado error";
                 document.getElementById("resultadoLectura").innerHTML =
                     "<strong>⚠️ Código ambiguo</strong><br>" +
-                    "Encontrados " + productosEncontrados.length + " productos:<br>" +
                     productosEncontrados.map(p => `· ${p.nombre} (${p.ean13})`).join("<br>");
                 return;
             }
@@ -1045,9 +1828,7 @@
                 document.getElementById("resultadoLectura").className = "resultado error";
                 document.getElementById("resultadoLectura").innerHTML =
                     "<strong>✗ Producto no encontrado</strong><br>" +
-                    "Código: " + codigoBusqueda + "<br>" +
-                    mensajeEAN + "<br>" +
-                    "Tecnología: " + tipo;
+                    "Código: " + codigoBusqueda + "<br>" + mensajeEAN;
             }
         }
 
@@ -1105,10 +1886,10 @@
                 precision = 10;
                 fuente = "MANUAL_UBICACION";
                 document.getElementById("estadoGPS").textContent =
-                    "📌 " + ub.nombre + " · " + lat.toFixed(6) + ", " + lon.toFixed(6) + " · precisión simulada 10 m";
+                    "📌 " + ub.nombre + " · " + lat.toFixed(6) + ", " + lon.toFixed(6);
             }
             else if (modoCaptura === "manual_mapa") {
-                document.getElementById("estadoGPS").textContent = "🗺️ Esperando selección en el mapa...";
+                document.getElementById("estadoGPS").textContent = "🗺️ Esperando selección...";
                 const manual = await abrirModalGPS();
                 if (manual) {
                     lat = manual.lat; lon = manual.lon;
@@ -1191,8 +1972,7 @@
                     mostrarEventos();
                     actualizarSelectorTrazabilidad();
 
-                    alert("✅ Evento registrado.\nFuente: " + fuente +
-                        "\nValidación: " + data.validacion +
+                    alert("✅ Evento registrado.\nValidación: " + data.validacion +
                         (data.distancia_m ? "\nDistancia: " + Math.round(data.distancia_m) + " m" : ""));
 
                     document.getElementById("ubicacionEvento").value = "";
@@ -1226,7 +2006,7 @@
                             const lon = parseFloatSafe(u.lon);
                             if (isNaN(lat) || isNaN(lon)) return;
                             L.circleMarker([lat, lon], {
-                                radius: 8, fillColor: "#1e40af", color: "white",
+                                radius: 8, fillColor: "#6366f1", color: "white",
                                 weight: 2, fillOpacity: 0.8
                             }).bindPopup(`<b>${u.nombre}</b><br>${u.tipo}`).addTo(mapaModal);
                         });
@@ -1515,10 +2295,10 @@
                     const lat = parseFloatSafe(u.lat);
                     const lon = parseFloatSafe(u.lon);
                     if (isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) return;
-                    const color = u.tipo === "Bodega" ? "#1e40af" :
-                                  u.tipo === "Tienda" ? "#047857" :
-                                  u.tipo === "Almacén" ? "#b45309" :
-                                  u.tipo === "Planta" ? "#6d28d9" : "#334155";
+                    const color = u.tipo === "Bodega" ? "#3b82f6" :
+                                  u.tipo === "Tienda" ? "#10b981" :
+                                  u.tipo === "Almacén" ? "#f59e0b" :
+                                  u.tipo === "Planta" ? "#8b5cf6" : "#64748b";
                     const marker = L.circleMarker([lat, lon], {
                         radius: 12, fillColor: color, color: 'white',
                         weight: 3, fillOpacity: 0.9
@@ -1569,9 +2349,9 @@
 
                     contadorProducto++;
 
-                    const color = validacion === "OK" ? "#047857" :
-                                  validacion === "FUERA_GEOCERCA" ? "#b91c1c" :
-                                  validacion === "BAJA_PRECISION" ? "#c2410c" : "#334155";
+                    const color = validacion === "OK" ? "#10b981" :
+                                  validacion === "FUERA_GEOCERCA" ? "#ef4444" :
+                                  validacion === "BAJA_PRECISION" ? "#f97316" : "#64748b";
 
                     let marker;
                     if (filtro === "producto") {
@@ -1618,7 +2398,6 @@
             if (!coords || coords.length < 2) return null;
             const waypoints = coords.map(c => `${c[1]},${c[0]}`).join(";");
             const url = OSRM_URL + waypoints + "?overview=full&geometries=geojson&steps=false";
-
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -1639,28 +2418,17 @@
         async function dibujarRutaOSRM(mapa, coords, grupo, arrMarcadores) {
             const ruta = await calcularRutaOSRM(coords);
             if (ruta) {
-                const borde = L.polyline(ruta.latlngs, {
-                    color: "white", weight: 13, opacity: 1, lineJoin: 'round', lineCap: 'round'
-                });
+                const borde = L.polyline(ruta.latlngs, { color: "white", weight: 13, opacity: 1, lineJoin: 'round', lineCap: 'round' });
                 grupo.addLayer(borde); arrMarcadores.push(borde);
-
-                const linea = L.polyline(ruta.latlngs, {
-                    color: "#0f172a", weight: 7, opacity: 0.95, lineJoin: 'round', lineCap: 'round'
-                });
+                const linea = L.polyline(ruta.latlngs, { color: "#6366f1", weight: 7, opacity: 0.95, lineJoin: 'round', lineCap: 'round' });
                 grupo.addLayer(linea); arrMarcadores.push(linea);
-
-                const hilo = L.polyline(ruta.latlngs, {
-                    color: "#3b82f6", weight: 2.5, opacity: 0.95, lineJoin: 'round', lineCap: 'round'
-                });
+                const hilo = L.polyline(ruta.latlngs, { color: "#a5b4fc", weight: 2.5, opacity: 0.95, lineJoin: 'round', lineCap: 'round' });
                 grupo.addLayer(hilo); arrMarcadores.push(hilo);
-
                 return ruta;
             } else {
                 const fallbackBorde = L.polyline(coords, { color: "white", weight: 10, opacity: 1 });
                 grupo.addLayer(fallbackBorde); arrMarcadores.push(fallbackBorde);
-                const fallback = L.polyline(coords, {
-                    color: "#0f172a", weight: 5, opacity: 0.95, dashArray: '12,8'
-                });
+                const fallback = L.polyline(coords, { color: "#6366f1", weight: 5, opacity: 0.95, dashArray: '12,8' });
                 grupo.addLayer(fallback); arrMarcadores.push(fallback);
                 let dist = 0;
                 for (let i = 0; i < coords.length - 1; i++) {
@@ -1756,8 +2524,8 @@
                 rutaInfo = await calcularRutaOSRM(coords);
                 if (rutaInfo) {
                     L.polyline(rutaInfo.latlngs, { color: "white", weight: 13, opacity: 1, lineJoin: 'round', lineCap: 'round' }).addTo(mapaTrazabilidad);
-                    L.polyline(rutaInfo.latlngs, { color: "#0f172a", weight: 7, opacity: 0.95, lineJoin: 'round', lineCap: 'round' }).addTo(mapaTrazabilidad);
-                    L.polyline(rutaInfo.latlngs, { color: "#3b82f6", weight: 2.5, opacity: 0.95, lineJoin: 'round', lineCap: 'round' }).addTo(mapaTrazabilidad);
+                    L.polyline(rutaInfo.latlngs, { color: "#6366f1", weight: 7, opacity: 0.95, lineJoin: 'round', lineCap: 'round' }).addTo(mapaTrazabilidad);
+                    L.polyline(rutaInfo.latlngs, { color: "#a5b4fc", weight: 2.5, opacity: 0.95, lineJoin: 'round', lineCap: 'round' }).addTo(mapaTrazabilidad);
                     try {
                         L.polyline.antPath(rutaInfo.latlngs, {
                             "color": "#10b981", "delay": 1200, "dashArray": [8, 40],
@@ -1769,18 +2537,18 @@
                         formatearDistancia(rutaInfo.distance) + " <small>distancia</small>";
                     document.getElementById("info-duracion").innerHTML =
                         formatearDuracion(rutaInfo.duration) + " <small>duración</small>";
-                    estadoRuta.innerHTML = '<span style="color:#047857;">✅</span><span>Ruta real calculada por calles</span>';
+                    estadoRuta.innerHTML = '<span style="color:#10b981;">✅</span><span>Ruta real calculada por calles</span>';
                 } else {
                     L.polyline(coords, { color: "white", weight: 11, opacity: 1 }).addTo(mapaTrazabilidad);
-                    L.polyline(coords, { color: "#0f172a", weight: 6, opacity: 0.95, dashArray: '12,8' }).addTo(mapaTrazabilidad);
+                    L.polyline(coords, { color: "#6366f1", weight: 6, opacity: 0.95, dashArray: '12,8' }).addTo(mapaTrazabilidad);
                     estadoRuta.innerHTML = '<span>⚠️ OSRM no disponible</span>';
                 }
             }
 
             evs.forEach((e, i) => {
-                const color = e.validacion_geo === 'OK' ? '#047857' :
-                              e.validacion_geo === 'FUERA_GEOCERCA' ? '#b91c1c' :
-                              e.validacion_geo === 'BAJA_PRECISION' ? '#c2410c' : '#334155';
+                const color = e.validacion_geo === 'OK' ? '#10b981' :
+                              e.validacion_geo === 'FUERA_GEOCERCA' ? '#ef4444' :
+                              e.validacion_geo === 'BAJA_PRECISION' ? '#f97316' : '#64748b';
 
                 const icon = L.divIcon({
                     className: 'numero-marcador',
@@ -1801,7 +2569,7 @@
             const camionIcono = L.divIcon({
                 className: 'camion-icono-wrapper',
                 html: `<div class="camion-icono">🚚</div>`,
-                iconSize: [38, 38], iconAnchor: [19, 19]
+                iconSize: [40, 40], iconAnchor: [20, 20]
             });
 
             L.marker(coords[0], { icon: camionIcono, zIndexOffset: 1000 })
@@ -1812,7 +2580,7 @@
                 const metaIcono = L.divIcon({
                     className: 'meta-icono-wrapper',
                     html: `<div class="meta-icono">🏁</div>`,
-                    iconSize: [38, 38], iconAnchor: [19, 19]
+                    iconSize: [40, 40], iconAnchor: [20, 20]
                 });
                 L.marker(coords[coords.length - 1], { icon: metaIcono, zIndexOffset: 1000 })
                     .bindPopup(`<b>🏁 Fin</b><br>${evs[evs.length-1].evento}`)
@@ -1821,11 +2589,11 @@
 
             mapaTrazabilidad.fitBounds(L.latLngBounds(coords), { padding: [60, 60] });
 
-            resumen.innerHTML = `<h3 style="color:#059669;margin-bottom:8px;">Recorrido (${evs.length} eventos)</h3>` +
+            resumen.innerHTML = `<h3 style="color:#a5b4fc;margin-bottom:8px;">Recorrido (${evs.length} eventos)</h3>` +
                 evs.map((e, i) => `
                     <div class="traza-item">
                         <b>${i + 1}. ${e.evento}</b> — ${e.fechaHora}<br>
-                        📍 ${e.ubicacion} · <span style="color:${e.validacion_geo === 'OK' ? '#047857' : '#b91c1c'}">
+                        📍 ${e.ubicacion} · <span style="color:${e.validacion_geo === 'OK' ? '#10b981' : '#ef4444'}">
                         ${e.validacion_geo || 'N/D'}</span>
                     </div>`).join('');
         }
@@ -1855,6 +2623,36 @@
             }
         }
 
+        // =========================================================
+        // DASHBOARD CON GRÁFICAS
+        // =========================================================
+        function filtrarEventosPorRango(eventosList, rango) {
+            if (rango === 'all') return eventosList;
+
+            const ahora = new Date();
+            let diasAtras = 30;
+            if (rango === '7d') diasAtras = 7;
+            if (rango === '30d') diasAtras = 30;
+            if (rango === '90d') diasAtras = 90;
+
+            const fechaLimite = new Date(ahora.getTime() - diasAtras * 24 * 60 * 60 * 1000);
+
+            return eventosList.filter(e => {
+                const fechaStr = e.fechaHora || '';
+                // Intentar parsear DD/MM/YYYY o ISO
+                let fecha = null;
+                if (fechaStr.includes('/')) {
+                    const partes = fechaStr.split(',')[0].trim().split('/');
+                    if (partes.length === 3) {
+                        fecha = new Date(parseInt(partes[2]), parseInt(partes[1]) - 1, parseInt(partes[0]));
+                    }
+                } else {
+                    fecha = new Date(fechaStr);
+                }
+                return fecha && fecha >= fechaLimite;
+            });
+        }
+
         async function actualizarDashboard() {
             try {
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -1862,18 +2660,408 @@
                     body: JSON.stringify({ accion: "consultar" })
                 });
                 const data = await response.json();
-                if (data.success) {
-                    const eventosList = data.eventos || [];
-                    const total = eventosList.length;
-                    const ok = eventosList.filter(e => getVal(e, 'validacion_geo') === "OK").length;
-                    const fuera = eventosList.filter(e => getVal(e, 'validacion_geo') === "FUERA_GEOCERCA").length;
-                    document.getElementById("totalEventosDashboard").textContent = total;
-                    document.getElementById("eventosOK").textContent = ok;
-                    document.getElementById("eventosFuera").textContent = fuera;
-                    document.getElementById("porcentajeFuera").textContent =
-                        total > 0 ? Math.round((fuera / total) * 100) + "%" : "0%";
+                if (!data.success) return;
+
+                const rango = document.getElementById("filtroRangoDash").value;
+                const categoriaFiltro = document.getElementById("filtroCategoriaDash").value;
+                const tipoFiltro = document.getElementById("filtroTipoDash").value;
+
+                let eventosList = (data.eventos || []).map(e => ({
+                    idEvento: getVal(e, 'idEvento'),
+                    fechaHora: getVal(e, 'fechaHora'),
+                    idProducto: getVal(e, 'idProducto'),
+                    producto: getVal(e, 'producto'),
+                    evento: getVal(e, 'evento'),
+                    ubicacion: getVal(e, 'ubicacion'),
+                    actor: getVal(e, 'actor'),
+                    fuente_ubicacion: getVal(e, 'fuente_ubicacion'),
+                    validacion_geo: getVal(e, 'validacion_geo')
+                }));
+
+                // Filtro por categoría (buscar en productos)
+                if (categoriaFiltro) {
+                    const productosCat = productos.filter(p => p.categoria === categoriaFiltro);
+                    const idsCat = productosCat.map(p => p.id);
+                    const eansCat = productosCat.map(p => p.ean13);
+                    eventosList = eventosList.filter(e =>
+                        idsCat.includes(e.idProducto) || eansCat.includes(e.idProducto)
+                    );
                 }
+
+                // Filtro por tipo de evento
+                if (tipoFiltro) {
+                    eventosList = eventosList.filter(e => e.evento === tipoFiltro);
+                }
+
+                // Filtro por rango temporal
+                eventosList = filtrarEventosPorRango(eventosList, rango);
+
+                const total = eventosList.length;
+                const ok = eventosList.filter(e => e.validacion_geo === "OK").length;
+                const fuera = eventosList.filter(e => e.validacion_geo === "FUERA_GEOCERCA").length;
+
+                document.getElementById("totalEventosDashboard").textContent = total;
+                document.getElementById("eventosOK").textContent = ok;
+                document.getElementById("eventosFuera").textContent = fuera;
+                document.getElementById("porcentajeFuera").textContent =
+                    total > 0 ? Math.round((fuera / total) * 100) + "%" : "0%";
+
+                // Renderizar gráficas
+                renderChartEventosPorDia(eventosList);
+                renderChartPorCategoria(eventosList, categoriaFiltro);
+                renderChartTiposEvento(eventosList);
+                renderChartFuentes(eventosList);
+                renderChartProductosCategoria();
+
             } catch (error) { console.error(error); }
+        }
+
+        // Colores globales para gráficas
+        const CHART_COLORS = {
+            purple: '#8b5cf6',
+            blue: '#3b82f6',
+            cyan: '#06b6d4',
+            green: '#10b981',
+            orange: '#f97316',
+            red: '#ef4444',
+            pink: '#ec4899',
+            yellow: '#eab308',
+            gray: '#64748b'
+        };
+
+        const CHART_DEFAULTS = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#94a3b8',
+                        font: { size: 11, family: 'Segoe UI' },
+                        padding: 12,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(21, 27, 61, 0.95)',
+                    titleColor: '#f1f5f9',
+                    bodyColor: '#cbd5e1',
+                    borderColor: 'rgba(139, 92, 246, 0.4)',
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: true
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#94a3b8', font: { size: 11 } },
+                    grid: { color: 'rgba(99, 102, 241, 0.08)' }
+                },
+                y: {
+                    ticks: { color: '#94a3b8', font: { size: 11 } },
+                    grid: { color: 'rgba(99, 102, 241, 0.08)' },
+                    beginAtZero: true
+                }
+            }
+        };
+
+        function renderChartEventosPorDia(eventosList) {
+            const ctx = document.getElementById("chartEventosPorDia");
+            if (!ctx) return;
+
+            // Agrupar por día
+            const porDia = {};
+            eventosList.forEach(e => {
+                const fechaStr = e.fechaHora || '';
+                let key = '';
+                if (fechaStr.includes('/')) {
+                    const partes = fechaStr.split(',')[0].trim().split('/');
+                    if (partes.length === 3) {
+                        key = partes[0].padStart(2, '0') + '/' + partes[1].padStart(2, '0');
+                    }
+                }
+                if (!key) key = 'Sin fecha';
+                if (!porDia[key]) porDia[key] = { total: 0, ok: 0, fuera: 0 };
+                porDia[key].total++;
+                if (e.validacion_geo === 'OK') porDia[key].ok++;
+                if (e.validacion_geo === 'FUERA_GEOCERCA') porDia[key].fuera++;
+            });
+
+            const labels = Object.keys(porDia).sort((a, b) => {
+                if (a === 'Sin fecha') return 1;
+                if (b === 'Sin fecha') return -1;
+                const [d1, m1] = a.split('/');
+                const [d2, m2] = b.split('/');
+                return new Date(2026, parseInt(m1) - 1, parseInt(d1)) - new Date(2026, parseInt(m2) - 1, parseInt(d2));
+            });
+
+            const datosTotal = labels.map(l => porDia[l].total);
+            const datosOK = labels.map(l => porDia[l].ok);
+            const datosFuera = labels.map(l => porDia[l].fuera);
+
+            if (chartEventosPorDia) chartEventosPorDia.destroy();
+
+            const gradient1 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
+            gradient1.addColorStop(0, 'rgba(139, 92, 246, 0.7)');
+            gradient1.addColorStop(1, 'rgba(139, 92, 246, 0.05)');
+
+            chartEventosPorDia = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Total eventos',
+                            data: datosTotal,
+                            borderColor: CHART_COLORS.purple,
+                            backgroundColor: gradient1,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointBackgroundColor: CHART_COLORS.purple,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            fill: true
+                        },
+                        {
+                            label: 'OK',
+                            data: datosOK,
+                            borderColor: CHART_COLORS.green,
+                            backgroundColor: 'transparent',
+                            tension: 0.4,
+                            borderWidth: 2,
+                            pointBackgroundColor: CHART_COLORS.green,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Fuera',
+                            data: datosFuera,
+                            borderColor: CHART_COLORS.red,
+                            backgroundColor: 'transparent',
+                            tension: 0.4,
+                            borderWidth: 2,
+                            pointBackgroundColor: CHART_COLORS.red,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: { ...CHART_DEFAULTS }
+            });
+        }
+
+        function renderChartPorCategoria(eventosList, categoriaFiltro) {
+            const ctx = document.getElementById("chartPorCategoria");
+            if (!ctx) return;
+
+            const porCat = {};
+            eventosList.forEach(e => {
+                // Buscar categoría del producto
+                const prod = productos.find(p => String(p.id) === String(e.idProducto) || p.ean13 === e.idProducto);
+                const cat = prod ? prod.categoria : 'Sin categoría';
+                if (!porCat[cat]) porCat[cat] = { ok: 0, fuera: 0, baja: 0 };
+                if (e.validacion_geo === 'OK') porCat[cat].ok++;
+                else if (e.validacion_geo === 'FUERA_GEOCERCA') porCat[cat].fuera++;
+                else porCat[cat].baja++;
+            });
+
+            const labels = Object.keys(porCat);
+            const datosOK = labels.map(l => porCat[l].ok);
+            const datosFuera = labels.map(l => porCat[l].fuera);
+            const datosBaja = labels.map(l => porCat[l].baja);
+
+            if (chartPorCategoria) chartPorCategoria.destroy();
+
+            chartPorCategoria = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'OK',
+                            data: datosOK,
+                            backgroundColor: CHART_COLORS.green,
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Fuera',
+                            data: datosFuera,
+                            backgroundColor: CHART_COLORS.red,
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Baja precisión',
+                            data: datosBaja,
+                            backgroundColor: CHART_COLORS.orange,
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    ...CHART_DEFAULTS,
+                    scales: {
+                        ...CHART_DEFAULTS.scales,
+                        x: { ...CHART_DEFAULTS.scales.x, stacked: true },
+                        y: { ...CHART_DEFAULTS.scales.y, stacked: true }
+                    }
+                }
+            });
+        }
+
+        function renderChartTiposEvento(eventosList) {
+            const ctx = document.getElementById("chartTiposEvento");
+            if (!ctx) return;
+
+            const tipos = {};
+            eventosList.forEach(e => {
+                const tipo = e.evento || 'Sin tipo';
+                tipos[tipo] = (tipos[tipo] || 0) + 1;
+            });
+
+            const labels = Object.keys(tipos);
+            const valores = labels.map(l => tipos[l]);
+
+            const colores = [
+                CHART_COLORS.purple, CHART_COLORS.blue, CHART_COLORS.cyan,
+                CHART_COLORS.green, CHART_COLORS.orange, CHART_COLORS.red,
+                CHART_COLORS.pink, CHART_COLORS.yellow, CHART_COLORS.gray
+            ];
+
+            if (chartTiposEvento) chartTiposEvento.destroy();
+
+            chartTiposEvento = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: valores,
+                        backgroundColor: colores.slice(0, labels.length),
+                        borderColor: '#1a2347',
+                        borderWidth: 3,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    ...CHART_DEFAULTS,
+                    cutout: '65%',
+                    plugins: {
+                        ...CHART_DEFAULTS.plugins,
+                        legend: {
+                            ...CHART_DEFAULTS.plugins.legend,
+                            position: 'right'
+                        }
+                    },
+                    scales: {}
+                }
+            });
+        }
+
+        function renderChartFuentes(eventosList) {
+            const ctx = document.getElementById("chartFuentes");
+            if (!ctx) return;
+
+            const fuentes = { GPS: 0, MANUAL_UBICACION: 0, MANUAL_MAPA: 0, DESCONOCIDO: 0 };
+            eventosList.forEach(e => {
+                const f = e.fuente_ubicacion || 'DESCONOCIDO';
+                fuentes[f] = (fuentes[f] || 0) + 1;
+            });
+
+            const labels = Object.keys(fuentes).filter(k => fuentes[k] > 0);
+            const valores = labels.map(l => fuentes[l]);
+
+            const coloresMap = {
+                GPS: CHART_COLORS.green,
+                MANUAL_UBICACION: CHART_COLORS.blue,
+                MANUAL_MAPA: CHART_COLORS.purple,
+                DESCONOCIDO: CHART_COLORS.gray
+            };
+
+            const labelsBonitos = labels.map(l => {
+                if (l === 'GPS') return '🛰️ GPS real';
+                if (l === 'MANUAL_UBICACION') return '📍 Ubic. preest.';
+                if (l === 'MANUAL_MAPA') return '🗺️ Mapa manual';
+                return '❓ Desconocido';
+            });
+
+            if (chartFuentes) chartFuentes.destroy();
+
+            chartFuentes = new Chart(ctx, {
+                type: 'polarArea',
+                data: {
+                    labels: labelsBonitos,
+                    datasets: [{
+                        data: valores,
+                        backgroundColor: labels.map(l => {
+                            if (l === 'GPS') return 'rgba(16, 185, 129, 0.7)';
+                            if (l === 'MANUAL_UBICACION') return 'rgba(59, 130, 246, 0.7)';
+                            if (l === 'MANUAL_MAPA') return 'rgba(139, 92, 246, 0.7)';
+                            return 'rgba(100, 116, 139, 0.7)';
+                        }),
+                        borderColor: '#1a2347',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    ...CHART_DEFAULTS,
+                    scales: {
+                        r: {
+                            ticks: { color: '#64748b', backdropColor: 'transparent' },
+                            grid: { color: 'rgba(99, 102, 241, 0.15)' },
+                            pointLabels: { color: '#94a3b8', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderChartProductosCategoria() {
+            const ctx = document.getElementById("chartProductosCategoria");
+            if (!ctx) return;
+
+            const porCat = {};
+            productos.forEach(p => {
+                const cat = p.categoria || 'Sin categoría';
+                if (!porCat[cat]) porCat[cat] = 0;
+                porCat[cat] += Number(p.cantidad) || 0;
+            });
+
+            const labels = Object.keys(porCat);
+            const valores = labels.map(l => porCat[l]);
+
+            const colores = [
+                CHART_COLORS.purple, CHART_COLORS.blue, CHART_COLORS.cyan,
+                CHART_COLORS.green, CHART_COLORS.orange, CHART_COLORS.red,
+                CHART_COLORS.pink, CHART_COLORS.yellow
+            ];
+
+            if (chartProductosCategoria) chartProductosCategoria.destroy();
+
+            chartProductosCategoria = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Unidades',
+                        data: valores,
+                        backgroundColor: colores.slice(0, labels.length),
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    ...CHART_DEFAULTS,
+                    indexAxis: 'y',
+                    plugins: {
+                        ...CHART_DEFAULTS.plugins,
+                        legend: { display: false }
+                    }
+                }
+            });
         }
 
         function actualizarInventario() {
@@ -1992,7 +3180,7 @@
         }
 
         async function init() {
-            console.log("🚀 Inicializando LogiTrace v1.7...");
+            console.log("🚀 Inicializando LogiTrace v2.0...");
             try {
                 await cargarUbicaciones();
                 await cargarDatosDesdeSheets();
@@ -2004,6 +3192,7 @@
                 actualizarDashboard();
                 actualizarSelectorTrazabilidad();
                 actualizarFiltroProductoMapa();
+                actualizarFiltroCategoriaDash();
                 actualizarPreviewEAN();
 
                 ["paisEAN", "empresaEAN", "productoEAN"].forEach(id => {
@@ -2011,7 +3200,7 @@
                     if (el) el.addEventListener("input", actualizarPreviewEAN);
                 });
 
-                console.log("✅ App v1.7 lista");
+                console.log("✅ App v2.0 lista");
             } catch (error) {
                 console.error("❌ Error init:", error);
             }
