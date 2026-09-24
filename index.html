@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiTrace UPEC v1.4</title>
+    <title>LogiTrace UPEC v1.5</title>
 
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
@@ -76,11 +76,11 @@
 
         #reader { width: 100%; max-width: 450px; margin: 15px auto; border-radius: 12px; overflow: hidden; }
 
-        .estado-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-        .estado-ok { background: #dcfce7; color: #065f46; }
-        .estado-fuera { background: #fee2e2; color: #991b1b; }
-        .estado-baja { background: #fef3c7; color: #92400e; }
-        .estado-sin-gps { background: #e2e8f0; color: #475569; }
+        .estado-badge { display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; color: white; }
+        .estado-ok { background: #047857; }
+        .estado-fuera { background: #b91c1c; }
+        .estado-baja { background: #c2410c; }
+        .estado-sin-gps { background: #334155; }
 
         .mensaje { padding: 12px; margin-top: 12px; border-radius: 8px; display: none; text-align: center; font-weight: 500; }
         .mensaje.exito { background: #d1fae5; color: #065f46; }
@@ -91,17 +91,17 @@
         .mapa-full-container { position: relative; width: 100%; height: calc(100vh - 150px); min-height: 500px; overflow: hidden; }
         #mapa-full { width: 100%; height: 100%; background: #e8f4f8; }
 
-        .mapa-filtros-superpuestos { position: absolute; top: 20px; left: 20px; right: 20px; z-index: 1000; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(10px); padding: 12px 18px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+        .mapa-filtros-superpuestos { position: absolute; top: 20px; left: 20px; right: 20px; z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 12px 18px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25); display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
         .mapa-filtros-superpuestos > div { flex: 1; min-width: 140px; }
         .mapa-filtros-superpuestos label { font-size: 0.75rem; margin: 0 0 3px 0; }
         .mapa-filtros-superpuestos select { padding: 7px 10px; font-size: 0.85rem; margin: 0; }
 
-        .mapa-leyenda-superpuesta { position: absolute; bottom: 20px; left: 20px; z-index: 1000; background: rgba(255, 255, 255, 0.9); padding: 8px 14px; border-radius: 10px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.7rem; }
-        .mapa-leyenda-superpuesta span { display: flex; align-items: center; gap: 4px; }
-        .mapa-leyenda-color { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .mapa-leyenda-superpuesta { position: absolute; bottom: 20px; left: 20px; z-index: 1000; background: rgba(255, 255, 255, 0.95); padding: 10px 16px; border-radius: 10px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2); display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.72rem; font-weight: 600; }
+        .mapa-leyenda-superpuesta span { display: flex; align-items: center; gap: 5px; }
+        .mapa-leyenda-color { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
 
         .mapa-zoom-buttons { position: absolute; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 5px; }
-        .mapa-zoom-buttons button { width: 38px; height: 38px; border-radius: 8px; background: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); font-size: 18px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; }
+        .mapa-zoom-buttons button { width: 38px; height: 38px; border-radius: 8px; background: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); font-size: 18px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; }
 
         .mini-mapa-ubicacion { width: 100%; height: 260px; border-radius: 10px; margin-top: 8px; border: 2px solid #e2e8f0; }
         .coord-chip { display: inline-block; background: #f0fdfa; color: #065f46; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin: 4px 4px 0 0; border: 1px solid #a7f3d0; }
@@ -116,17 +116,30 @@
         #mapa-modal { width: 100%; height: 340px; border-radius: 10px; margin: 12px 0; }
 
         .camion-icono {
-            background: #059669;
+            background: #0f172a;
             color: white;
             border-radius: 50%;
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 20px;
             border: 3px solid white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .meta-icono {
+            background: #b91c1c;
+            color: white;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
 
         .preview-ean {
@@ -146,18 +159,17 @@
         .des-producto { background: #fed7aa; color: #9a3412; }
         .des-verif { background: #fecaca; color: #991b1b; }
 
-        /* Caja flotante estilo Google Maps con info de la ruta */
         .caja-info-ruta {
             position: absolute;
-            top: 100px;
+            top: 20px;
             right: 20px;
             z-index: 1000;
             background: white;
             border-radius: 12px;
             padding: 16px 20px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
             min-width: 240px;
-            border-left: 5px solid #3b82f6;
+            border-left: 5px solid #0f172a;
             display: none;
         }
         .caja-info-ruta.visible { display: block; animation: slideInRight 0.4s; }
@@ -179,20 +191,9 @@
             gap: 10px;
             margin: 8px 0;
         }
-        .caja-info-ruta .fila .icono {
-            font-size: 22px;
-        }
-        .caja-info-ruta .fila .dato {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #1e293b;
-        }
-        .caja-info-ruta .fila .dato small {
-            font-size: 0.75rem;
-            color: #64748b;
-            font-weight: 500;
-            display: block;
-        }
+        .caja-info-ruta .fila .icono { font-size: 22px; }
+        .caja-info-ruta .fila .dato { font-size: 1.15rem; font-weight: 700; color: #0f172a; }
+        .caja-info-ruta .fila .dato small { font-size: 0.75rem; color: #64748b; font-weight: 500; display: block; }
         .caja-info-ruta .estado-ruta {
             margin-top: 10px;
             padding-top: 10px;
@@ -207,14 +208,12 @@
             width: 12px;
             height: 12px;
             border: 2px solid #cbd5e1;
-            border-top-color: #3b82f6;
+            border-top-color: #0f172a;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             display: inline-block;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         @media(max-width: 768px) {
             nav button { flex: 1 0 45%; font-size: 0.8rem; padding: 6px 10px; }
@@ -236,8 +235,8 @@
 <body>
 
     <header>
-        <h1>📦 LogiTrace UPEC v1.4</h1>
-        <p>Trazabilidad Logística con Ruta Real (OSRM)</p>
+        <h1>📦 LogiTrace UPEC v1.5</h1>
+        <p>Trazabilidad Logística · EAN-13 · QR · RFID · Ruta Real OSRM</p>
     </header>
 
     <nav>
@@ -255,7 +254,7 @@
 
     <main>
 
-        <!-- ========== INICIO ========== -->
+        <!-- INICIO -->
         <section id="inicio" class="seccion activa">
             <div class="card">
                 <h2>Panel principal</h2>
@@ -280,7 +279,7 @@
             </div>
         </section>
 
-        <!-- ========== PRODUCTOS ========== -->
+        <!-- PRODUCTOS -->
         <section id="productos" class="seccion">
             <div class="card">
                 <h2>📦 Registro de producto</h2>
@@ -375,7 +374,7 @@
             </div>
         </section>
 
-        <!-- ========== IDENTIFICADORES ========== -->
+        <!-- IDENTIFICADORES -->
         <section id="identificadores" class="seccion">
             <div class="card">
                 <h2>🏷 Generación de identificadores</h2>
@@ -403,7 +402,7 @@
             </div>
         </section>
 
-        <!-- ========== LECTOR ========== -->
+        <!-- LECTOR -->
         <section id="lector" class="seccion">
             <div class="card">
                 <h2>📷 Lector de códigos</h2>
@@ -437,7 +436,7 @@
                         </select>
                     </div>
                     <div>
-                        <label>Ubicación *</label>
+                        <label>Ubicación declarada *</label>
                         <select id="ubicacionEvento"><option value="">Seleccione ubicación</option></select>
                     </div>
                     <div>
@@ -449,14 +448,36 @@
                         <textarea id="observacionEvento" rows="2"></textarea>
                     </div>
                 </div>
+
+                <h3 style="margin-top:15px; color:#64748b; font-size:1rem;">📡 Fuente de captura de posición</h3>
+                <p style="color:#64748b; font-size:0.85rem; margin-bottom:10px;">
+                    Elige si usar el GPS real, una ubicación del maestro o seleccionar en el mapa.
+                </p>
+                <div class="grid">
+                    <div>
+                        <label>Modo de captura *</label>
+                        <select id="modoCaptura" onchange="toggleModoCaptura()">
+                            <option value="gps">🛰️ GPS real (ubicación actual)</option>
+                            <option value="manual_ubicacion">📍 Ubicación preestablecida (pruebas)</option>
+                            <option value="manual_mapa">🗺️ Seleccionar en mapa</option>
+                        </select>
+                    </div>
+                    <div id="contenedorUbicacionCaptura" style="display:none;">
+                        <label>Usar coordenadas de</label>
+                        <select id="ubicacionCaptura">
+                            <option value="">-- Seleccione ubicación --</option>
+                        </select>
+                    </div>
+                </div>
+
                 <button class="btn-verde" onclick="registrarEvento()">📌 Registrar evento</button>
                 <div id="infoGPS" style="margin-top:10px; padding:10px; background:#f1f5f9; border-radius:8px; display:none;">
-                    📍 GPS: <span id="estadoGPS">Esperando...</span>
+                    📍 Posición: <span id="estadoGPS">Esperando...</span>
                 </div>
             </div>
         </section>
 
-        <!-- ========== RFID ========== -->
+        <!-- RFID -->
         <section id="rfid" class="seccion">
             <div class="card">
                 <h2>📡 Simulación RFID</h2>
@@ -467,7 +488,7 @@
             </div>
         </section>
 
-        <!-- ========== UBICACIONES ========== -->
+        <!-- UBICACIONES -->
         <section id="ubicaciones" class="seccion">
             <div class="card">
                 <h2>📍 Gestión de ubicaciones</h2>
@@ -535,7 +556,7 @@
             </div>
         </section>
 
-        <!-- ========== INVENTARIO ========== -->
+        <!-- INVENTARIO -->
         <section id="inventario" class="seccion">
             <div class="card">
                 <h2>📊 Inventario</h2>
@@ -570,7 +591,7 @@
             </div>
         </section>
 
-        <!-- ========== TRAZABILIDAD ========== -->
+        <!-- TRAZABILIDAD -->
         <section id="eventos" class="seccion">
             <div class="card">
                 <h2>📜 Historial</h2>
@@ -618,7 +639,7 @@
             </div>
         </section>
 
-        <!-- ========== MAPA ========== -->
+        <!-- MAPA -->
         <section id="mapa" class="seccion" style="padding: 0; margin: 0; max-width: 100%;">
             <div class="mapa-full-container">
                 <div id="mapa-full"></div>
@@ -655,11 +676,12 @@
                 </div>
 
                 <div class="mapa-leyenda-superpuesta">
-                    <span><span class="mapa-leyenda-color" style="background:#3b82f6;"></span> Ubicaciones</span>
-                    <span><span class="mapa-leyenda-color" style="background:#10b981;"></span> OK</span>
-                    <span><span class="mapa-leyenda-color" style="background:#ef4444;"></span> Fuera</span>
-                    <span><span class="mapa-leyenda-color" style="background:#f59e0b;"></span> Baja</span>
-                    <span><span class="mapa-leyenda-color" style="background:#94a3b8;"></span> Sin GPS</span>
+                    <span><span class="mapa-leyenda-color" style="background:#1e40af;"></span> Bodega</span>
+                    <span><span class="mapa-leyenda-color" style="background:#047857;"></span> Tienda / OK</span>
+                    <span><span class="mapa-leyenda-color" style="background:#b45309;"></span> Almacén</span>
+                    <span><span class="mapa-leyenda-color" style="background:#b91c1c;"></span> Fuera</span>
+                    <span><span class="mapa-leyenda-color" style="background:#c2410c;"></span> Baja</span>
+                    <span><span class="mapa-leyenda-color" style="background:#334155;"></span> Sin GPS</span>
                 </div>
 
                 <div class="mapa-zoom-buttons">
@@ -670,7 +692,7 @@
             </div>
         </section>
 
-        <!-- ========== DASHBOARD ========== -->
+        <!-- DASHBOARD -->
         <section id="dashboard" class="seccion">
             <div class="card">
                 <h2>📈 Dashboard</h2>
@@ -715,7 +737,7 @@
     </div>
 
     <footer>
-        <p>LogiTrace UPEC v1.4 | Ruta real con OSRM + OpenStreetMap</p>
+        <p>LogiTrace UPEC v1.5 | Trazabilidad + Geolocalización + OSRM</p>
     </footer>
 
     <script>
@@ -827,6 +849,15 @@
             if (id === "ubicaciones") setTimeout(inicializarMiniMapaUbicacion, 300);
             if (id === "eventos") actualizarSelectorTrazabilidad();
             if (id === "productos") actualizarPreviewEAN();
+        }
+
+        // =========================================================
+        // TOGGLE MODO CAPTURA
+        // =========================================================
+        function toggleModoCaptura() {
+            const modo = document.getElementById("modoCaptura").value;
+            const contenedor = document.getElementById("contenedorUbicacionCaptura");
+            contenedor.style.display = modo === "manual_ubicacion" ? "block" : "none";
         }
 
         // =========================================================
@@ -1103,7 +1134,7 @@
         }
 
         // =========================================================
-        // REGISTRAR EVENTO
+        // REGISTRAR EVENTO CON MODO DE CAPTURA
         // =========================================================
         async function registrarEvento() {
             if (!productoLeido) { alert("Primero lea un código o detecte RFID."); return; }
@@ -1112,45 +1143,85 @@
             const ubicacionDeclarada = document.getElementById("ubicacionEvento").value;
             const actor = document.getElementById("actorEvento").value.trim();
             const observacion = document.getElementById("observacionEvento").value.trim();
+            const modoCaptura = document.getElementById("modoCaptura").value;
 
             if (!ubicacionDeclarada || !actor) { alert("Complete ubicación y responsable."); return; }
 
             document.getElementById("infoGPS").style.display = "block";
-            document.getElementById("estadoGPS").textContent = "Capturando GPS...";
+            document.getElementById("estadoGPS").textContent = "Capturando posición...";
 
             let lat = null, lon = null, precision = null, fuente = "MANUAL";
 
-            if (navigator.geolocation) {
-                try {
-                    const pos = await new Promise((resolve, reject) => {
-                        navigator.geolocation.getCurrentPosition(resolve, reject,
-                            { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
-                    });
-                    lat = pos.coords.latitude;
-                    lon = pos.coords.longitude;
-                    precision = pos.coords.accuracy;
-                    fuente = "GPS";
-                    document.getElementById("estadoGPS").textContent =
-                        "✅ " + lat.toFixed(6) + ", " + lon.toFixed(6) +
-                        " — precisión: " + Math.round(precision) + " m";
-                } catch (error) {
-                    document.getElementById("estadoGPS").textContent =
-                        "⚠️ GPS no disponible. Selecciona el punto en el mapa...";
-                    const manual = await abrirModalGPS();
-                    if (manual) {
-                        lat = manual.lat; lon = manual.lon;
-                        precision = manual.precision || null;
-                        fuente = "MANUAL_MAPA";
-                        document.getElementById("estadoGPS").textContent =
-                            "📌 Punto manual: " + lat.toFixed(6) + ", " + lon.toFixed(6);
-                    }
+            // MODO 1: Ubicación preestablecida
+            if (modoCaptura === "manual_ubicacion") {
+                const ubId = document.getElementById("ubicacionCaptura").value;
+                if (!ubId) {
+                    alert("Selecciona una ubicación preestablecida.");
+                    document.getElementById("infoGPS").style.display = "none";
+                    return;
                 }
-            } else {
+                const ub = ubicaciones.find(u => String(u.id_ubicacion) === String(ubId));
+                if (!ub) {
+                    alert("Ubicación no encontrada.");
+                    document.getElementById("infoGPS").style.display = "none";
+                    return;
+                }
+                lat = parseFloat(String(ub.lat).replace(",", "."));
+                lon = parseFloat(String(ub.lon).replace(",", "."));
+                precision = 10;
+                fuente = "MANUAL_UBICACION";
+                document.getElementById("estadoGPS").textContent =
+                    "📌 " + ub.nombre + " · " + lat.toFixed(6) + ", " + lon.toFixed(6) + " · precisión simulada 10 m";
+            }
+            // MODO 2: Selección en mapa
+            else if (modoCaptura === "manual_mapa") {
+                document.getElementById("estadoGPS").textContent = "🗺️ Esperando selección en el mapa...";
                 const manual = await abrirModalGPS();
                 if (manual) {
                     lat = manual.lat; lon = manual.lon;
                     precision = manual.precision || null;
                     fuente = "MANUAL_MAPA";
+                    document.getElementById("estadoGPS").textContent =
+                        "📌 Punto manual: " + lat.toFixed(6) + ", " + lon.toFixed(6);
+                } else {
+                    document.getElementById("infoGPS").style.display = "none";
+                    return;
+                }
+            }
+            // MODO 3: GPS real
+            else {
+                if (navigator.geolocation) {
+                    try {
+                        const pos = await new Promise((resolve, reject) => {
+                            navigator.geolocation.getCurrentPosition(resolve, reject,
+                                { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+                        });
+                        lat = pos.coords.latitude;
+                        lon = pos.coords.longitude;
+                        precision = pos.coords.accuracy;
+                        fuente = "GPS";
+                        document.getElementById("estadoGPS").textContent =
+                            "✅ " + lat.toFixed(6) + ", " + lon.toFixed(6) +
+                            " — precisión: " + Math.round(precision) + " m";
+                    } catch (error) {
+                        document.getElementById("estadoGPS").textContent =
+                            "⚠️ GPS no disponible. Selecciona el punto en el mapa...";
+                        const manual = await abrirModalGPS();
+                        if (manual) {
+                            lat = manual.lat; lon = manual.lon;
+                            precision = manual.precision || null;
+                            fuente = "MANUAL_MAPA";
+                            document.getElementById("estadoGPS").textContent =
+                                "📌 Punto manual: " + lat.toFixed(6) + ", " + lon.toFixed(6);
+                        }
+                    }
+                } else {
+                    const manual = await abrirModalGPS();
+                    if (manual) {
+                        lat = manual.lat; lon = manual.lon;
+                        precision = manual.precision || null;
+                        fuente = "MANUAL_MAPA";
+                    }
                 }
             }
 
@@ -1198,7 +1269,8 @@
                     mostrarEventos();
                     actualizarSelectorTrazabilidad();
 
-                    alert("✅ Evento registrado.\nValidación: " + data.validacion +
+                    alert("✅ Evento registrado.\nFuente: " + fuente +
+                        "\nValidación: " + data.validacion +
                         (data.distancia_m ? "\nDistancia: " + Math.round(data.distancia_m) + " m" : ""));
 
                     document.getElementById("ubicacionEvento").value = "";
@@ -1229,6 +1301,21 @@
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                             attribution: '© OpenStreetMap'
                         }).addTo(mapaModal);
+
+                        // Dibujar ubicaciones del maestro como referencia
+                        ubicaciones.forEach(u => {
+                            const lat = parseFloat(String(u.lat).replace(",", "."));
+                            const lon = parseFloat(String(u.lon).replace(",", "."));
+                            if (isNaN(lat) || isNaN(lon)) return;
+                            L.circleMarker([lat, lon], {
+                                radius: 8,
+                                fillColor: "#1e40af",
+                                color: "white",
+                                weight: 2,
+                                fillOpacity: 0.8
+                            }).bindPopup(`<b>${u.nombre}</b><br>${u.tipo}`).addTo(mapaModal);
+                        });
+
                         mapaModal.on('click', function (e) {
                             if (marcadorModal) mapaModal.removeLayer(marcadorModal);
                             marcadorModal = L.marker([e.latlng.lat, e.latlng.lng]).addTo(mapaModal);
@@ -1382,11 +1469,13 @@
             tabla.innerHTML = "";
             ubicaciones.forEach(u => {
                 const fila = document.createElement("tr");
+                const latNum = parseFloat(String(u.lat).replace(",", "."));
+                const lonNum = parseFloat(String(u.lon).replace(",", "."));
                 fila.innerHTML = `
                     <td>${u.id_ubicacion}</td>
                     <td>${u.nombre}</td>
                     <td>${u.tipo}</td>
-                    <td>${parseFloat(u.lat).toFixed(5)}, ${parseFloat(u.lon).toFixed(5)}</td>
+                    <td>${!isNaN(latNum) ? latNum.toFixed(5) : "?"}, ${!isNaN(lonNum) ? lonNum.toFixed(5) : "?"}</td>
                     <td>${u.radio_geocerca_m} m</td>
                     <td>
                         <button class="btn-azul" style="padding:4px 10px;font-size:0.75rem;"
@@ -1405,14 +1494,15 @@
             document.getElementById("nombreUbicacion").value = u.nombre;
             document.getElementById("tipoUbicacion").value = u.tipo;
             document.getElementById("direccionUbicacion").value = u.direccion || "";
-            document.getElementById("latUbicacion").value = u.lat;
-            document.getElementById("lonUbicacion").value = u.lon;
+            document.getElementById("latUbicacion").value = String(u.lat).replace(",", ".");
+            document.getElementById("lonUbicacion").value = String(u.lon).replace(",", ".");
             document.getElementById("radioUbicacion").value = u.radio_geocerca_m;
             document.getElementById("padreUbicacion").value = u.padre_id || "";
             document.getElementById("idUbicacion").disabled = true;
 
             if (miniMapaUbicacion) {
-                const lat = parseFloat(u.lat), lon = parseFloat(u.lon);
+                const lat = parseFloat(String(u.lat).replace(",", "."));
+                const lon = parseFloat(String(u.lon).replace(",", "."));
                 miniMapaUbicacion.setView([lat, lon], 15);
                 if (marcadorMiniMapa) miniMapaUbicacion.removeLayer(marcadorMiniMapa);
                 marcadorMiniMapa = L.marker([lat, lon]).addTo(miniMapaUbicacion);
@@ -1441,14 +1531,16 @@
 
         function actualizarSelectoresUbicacion() {
             const selectores = ["origenProducto", "destinoProducto", "ubicacionProducto",
-                                "ubicacionEvento", "padreUbicacion"];
+                                "ubicacionEvento", "padreUbicacion", "ubicacionCaptura"];
             selectores.forEach(id => {
                 const select = document.getElementById(id);
                 if (!select) return;
                 const valorActual = select.value;
                 select.innerHTML = id === "padreUbicacion"
                     ? '<option value="">Sin padre</option>'
-                    : '<option value="">Seleccione ubicación</option>';
+                    : (id === "ubicacionCaptura"
+                        ? '<option value="">-- Seleccione ubicación --</option>'
+                        : '<option value="">Seleccione ubicación</option>');
                 ubicaciones.forEach(u => {
                     const option = document.createElement("option");
                     option.value = u.id_ubicacion;
@@ -1491,7 +1583,6 @@
             const filtroValidacion = document.getElementById("filtroValidacionFull").value;
             const filtroProducto = document.getElementById("filtroProductoMapa").value;
 
-            // Mostrar/ocultar el filtro de producto
             document.getElementById("contenedorFiltroProducto").style.display =
                 filtro === "producto" ? "block" : "none";
 
@@ -1501,14 +1592,16 @@
             if (filtro === "todos" || filtro === "ubicaciones") {
                 if (ubicaciones.length === 0) await cargarUbicaciones();
                 ubicaciones.forEach(u => {
-                    const lat = parseFloat(u.lat), lon = parseFloat(u.lon);
-                    if (!lat || !lon || isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) return;
-                    const color = u.tipo === "Bodega" ? "#3b82f6" :
-                                  u.tipo === "Tienda" ? "#10b981" :
-                                  u.tipo === "Almacén" ? "#f59e0b" : "#8b5cf6";
+                    const lat = parseFloat(String(u.lat).replace(",", "."));
+                    const lon = parseFloat(String(u.lon).replace(",", "."));
+                    if (isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) return;
+                    const color = u.tipo === "Bodega" ? "#1e40af" :
+                                  u.tipo === "Tienda" ? "#047857" :
+                                  u.tipo === "Almacén" ? "#b45309" :
+                                  u.tipo === "Planta" ? "#6d28d9" : "#334155";
                     const marker = L.circleMarker([lat, lon], {
                         radius: 12, fillColor: color, color: 'white',
-                        weight: 3, fillOpacity: 0.85
+                        weight: 3, fillOpacity: 0.9
                     }).bindPopup(`<strong>${u.nombre}</strong><br>Tipo: ${u.tipo}<br>Radio: ${u.radio_geocerca_m}m`);
                     grupo.addLayer(marker);
                     marcadoresMapaFull.push(marker);
@@ -1516,7 +1609,7 @@
                         const circle = L.circle([lat, lon], {
                             radius: parseFloat(u.radio_geocerca_m),
                             color: color, fillColor: color,
-                            fillOpacity: 0.1, weight: 2, dashArray: '4'
+                            fillOpacity: 0.12, weight: 2, dashArray: '4'
                         });
                         grupo.addLayer(circle);
                         marcadoresMapaFull.push(circle);
@@ -1528,17 +1621,14 @@
             if (filtro === "todos" || filtro === "eventos" || filtro === "producto") {
                 let eventosFiltrados = eventos;
 
-                // Filtrar por producto
                 if (filtro === "producto" && filtroProducto) {
                     eventosFiltrados = eventos.filter(e => String(e.idProducto) === String(filtroProducto));
                 }
 
-                // Ordenar por fecha
                 eventosFiltrados = eventosFiltrados.slice().sort((a, b) =>
                     new Date(a.fechaHora) - new Date(b.fechaHora)
                 );
 
-                // Si es por producto, dibujar también la línea conectando
                 const coordsValidas = [];
                 eventosFiltrados.forEach(e => {
                     const lat = parseFloat(e.lat_capturada) || parseFloat(e.lat) || 0;
@@ -1548,7 +1638,6 @@
                 });
 
                 if (filtro === "producto" && coordsValidas.length >= 2) {
-                    // Ruta real entre puntos con OSRM (o fallback)
                     await dibujarRutaOSRM(mapaFull, coordsValidas, grupo, marcadoresMapaFull);
                 }
 
@@ -1560,32 +1649,31 @@
                     const validacion = e.validacion_geo || "SIN_GPS";
                     if (filtroValidacion !== "todos" && validacion !== filtroValidacion) return;
 
-                    const color = validacion === "OK" ? "#10b981" :
-                                  validacion === "FUERA_GEOCERCA" ? "#ef4444" :
-                                  validacion === "BAJA_PRECISION" ? "#f59e0b" : "#94a3b8";
+                    const color = validacion === "OK" ? "#047857" :
+                                  validacion === "FUERA_GEOCERCA" ? "#b91c1c" :
+                                  validacion === "BAJA_PRECISION" ? "#c2410c" : "#334155";
 
-                    // Si es por producto, numerar
-                    let icono;
+                    let marker;
                     if (filtro === "producto") {
-                        icono = L.divIcon({
+                        const icono = L.divIcon({
                             className: 'numero-marcador',
-                            html: `<div style="background:${color};color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);font-size:12px;">${index + 1}</div>`,
-                            iconSize: [26, 26], iconAnchor: [13, 13]
+                            html: `<div style="background:${color};color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.5);font-size:12px;">${index + 1}</div>`,
+                            iconSize: [28, 28], iconAnchor: [14, 14]
+                        });
+                        marker = L.marker([lat, lon], { icon: icono });
+                    } else {
+                        marker = L.circleMarker([lat, lon], {
+                            radius: 10, fillColor: color, color: 'white',
+                            weight: 3, fillOpacity: 0.95
                         });
                     }
-
-                    const marker = filtro === "producto"
-                        ? L.marker([lat, lon], { icon: icono })
-                        : L.circleMarker([lat, lon], {
-                            radius: 10, fillColor: color, color: 'white',
-                            weight: 2, fillOpacity: 0.9
-                        });
 
                     marker.bindPopup(`
                         <strong>${e.producto || "Producto"}</strong><br>
                         Evento: ${e.evento || "N/A"}<br>
                         Fecha: ${e.fechaHora || "N/A"}<br>
                         Ubicación: ${e.ubicacion || "N/A"}<br>
+                        Fuente: ${e.fuente_ubicacion || "N/A"}<br>
                         Validación: <b>${validacion}</b><br>
                         ${e.distancia_declarada_m ? 'Distancia: ' + Math.round(e.distancia_declarada_m) + 'm<br>' : ''}
                         ${e.precision_m ? 'Precisión: ' + Math.round(e.precision_m) + 'm' : ''}
@@ -1618,12 +1706,11 @@
         }
 
         // =========================================================
-        // OSRM - RUTA REAL POR CALLES
+        // OSRM
         // =========================================================
         async function calcularRutaOSRM(coords) {
             if (!coords || coords.length < 2) return null;
 
-            // OSRM espera formato lon,lat;lon,lat;...
             const waypoints = coords.map(c => `${c[1]},${c[0]}`).join(";");
             const url = OSRM_URL + waypoints + "?overview=full&geometries=geojson&steps=false";
 
@@ -1637,13 +1724,12 @@
                 }
 
                 const route = data.routes[0];
-                // Convertir [lon, lat] a [lat, lon] para Leaflet
                 const latlngs = route.geometry.coordinates.map(c => [c[1], c[0]]);
 
                 return {
                     latlngs: latlngs,
-                    distance: route.distance, // metros
-                    duration: route.duration  // segundos
+                    distance: route.distance,
+                    duration: route.duration
                 };
             } catch (err) {
                 console.warn("OSRM error:", err);
@@ -1651,47 +1737,49 @@
             }
         }
 
-        // Dibuja una ruta real usando OSRM (o fallback)
         async function dibujarRutaOSRM(mapa, coords, grupo, arrMarcadores) {
             const ruta = await calcularRutaOSRM(coords);
 
             if (ruta) {
-                // Ruta real encontrada
+                // Halo blanco
+                const borde = L.polyline(ruta.latlngs, {
+                    color: "white", weight: 13, opacity: 1,
+                    lineJoin: 'round', lineCap: 'round'
+                });
+                grupo.addLayer(borde);
+                arrMarcadores.push(borde);
+
+                // Línea negra principal
                 const linea = L.polyline(ruta.latlngs, {
-                    color: "#3b82f6",
-                    weight: 6,
-                    opacity: 0.75,
-                    lineJoin: 'round',
-                    lineCap: 'round'
+                    color: "#0f172a", weight: 7, opacity: 0.95,
+                    lineJoin: 'round', lineCap: 'round'
                 });
                 grupo.addLayer(linea);
                 arrMarcadores.push(linea);
 
-                // Borde blanco (efecto Google Maps)
-                const borde = L.polyline(ruta.latlngs, {
-                    color: "white",
-                    weight: 10,
-                    opacity: 0.9,
-                    lineJoin: 'round',
-                    lineCap: 'round'
+                // Hilo azul interno
+                const hilo = L.polyline(ruta.latlngs, {
+                    color: "#3b82f6", weight: 2.5, opacity: 0.95,
+                    lineJoin: 'round', lineCap: 'round'
                 });
-                borde.bringToBack();
-                grupo.addLayer(borde);
-                arrMarcadores.push(borde);
+                grupo.addLayer(hilo);
+                arrMarcadores.push(hilo);
 
                 return ruta;
             } else {
-                // Fallback: línea recta
+                const fallbackBorde = L.polyline(coords, {
+                    color: "white", weight: 10, opacity: 1
+                });
+                grupo.addLayer(fallbackBorde);
+                arrMarcadores.push(fallbackBorde);
+
                 const fallback = L.polyline(coords, {
-                    color: "#3b82f6",
-                    weight: 5,
-                    opacity: 0.7,
-                    dashArray: '10, 8'
+                    color: "#0f172a", weight: 5, opacity: 0.95,
+                    dashArray: '12,8'
                 }).bindPopup('⚠️ Ruta aproximada (OSRM no disponible)');
                 grupo.addLayer(fallback);
                 arrMarcadores.push(fallback);
 
-                // Calcular distancia Haversine de fallback
                 let dist = 0;
                 for (let i = 0; i < coords.length - 1; i++) {
                     dist += haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]);
@@ -1699,7 +1787,7 @@
                 return {
                     latlngs: coords,
                     distance: dist,
-                    duration: dist / 15000 // ~54 km/h
+                    duration: dist / 15000
                 };
             }
         }
@@ -1728,7 +1816,7 @@
         }
 
         // =========================================================
-        // TRAYECTORIA CON OSRM (HÍBRIDO)
+        // TRAYECTORIA
         // =========================================================
         function actualizarSelectorTrazabilidad() {
             const sel = document.getElementById("selectorTrazabilidad");
@@ -1784,7 +1872,6 @@
 
             const coords = evs.map(e => [parseFloat(e.lat_capturada), parseFloat(e.lon_capturada)]);
 
-            // Mostrar caja con estado "calculando"
             cajaInfo.classList.add("visible");
             estadoRuta.innerHTML = '<span class="spinner-ruta"></span><span>Calculando ruta por calles...</span>';
             document.getElementById("info-distancia").textContent = "— km";
@@ -1794,70 +1881,70 @@
             let rutaInfo = null;
 
             if (coords.length >= 2) {
-                // RUTA REAL con OSRM
                 rutaInfo = await calcularRutaOSRM(coords);
 
                 if (rutaInfo) {
-                    // Borde blanco primero (queda debajo)
+                    // Halo blanco
                     L.polyline(rutaInfo.latlngs, {
-                        color: "white", weight: 10, opacity: 0.9,
+                        color: "white", weight: 13, opacity: 1,
                         lineJoin: 'round', lineCap: 'round'
                     }).addTo(mapaTrazabilidad);
 
-                    // Línea azul encima
+                    // Línea negra principal
                     L.polyline(rutaInfo.latlngs, {
-                        color: "#3b82f6", weight: 6, opacity: 0.85,
+                        color: "#0f172a", weight: 7, opacity: 0.95,
                         lineJoin: 'round', lineCap: 'round'
                     }).addTo(mapaTrazabilidad);
 
-                    // Ruta animada encima de todo (efecto ant-path sutil)
+                    // Hilo azul interno
+                    L.polyline(rutaInfo.latlngs, {
+                        color: "#3b82f6", weight: 2.5, opacity: 0.95,
+                        lineJoin: 'round', lineCap: 'round'
+                    }).addTo(mapaTrazabilidad);
+
+                    // AntPath verde encima (animación)
                     try {
                         L.polyline.antPath(rutaInfo.latlngs, {
                             "color": "#10b981",
                             "delay": 1200,
-                            "dashArray": [10, 30],
+                            "dashArray": [8, 40],
                             "weight": 3,
-                            "opacity": 0.8,
+                            "opacity": 0.9,
                             "pulseColor": "#34d399",
                             "paused": false
                         }).addTo(mapaTrazabilidad);
-                    } catch (e) { /* opcional */ }
+                    } catch (e) { }
 
-                    // Actualizar caja
                     document.getElementById("info-distancia").innerHTML =
                         formatearDistancia(rutaInfo.distance) + " <small>distancia</small>";
                     document.getElementById("info-duracion").innerHTML =
                         formatearDuracion(rutaInfo.duration) + " <small>duración</small>";
-                    estadoRuta.innerHTML = '<span style="color:#10b981;">✅</span><span>Ruta real calculada por calles</span>';
+                    estadoRuta.innerHTML = '<span style="color:#047857;">✅</span><span>Ruta real calculada por calles</span>';
 
                 } else {
-                    // Fallback: línea recta animada
-                    try {
-                        L.polyline.antPath(coords, {
-                            "color": "#3b82f6",
-                            "delay": 800,
-                            "dashArray": [10, 20],
-                            "weight": 5,
-                            "opacity": 0.85,
-                            "pulseColor": "#10b981"
-                        }).addTo(mapaTrazabilidad);
-                    } catch (err) {
-                        L.polyline(coords, { color: '#3b82f6', weight: 4, dashArray: '10,8' }).addTo(mapaTrazabilidad);
-                    }
+                    // Fallback
+                    L.polyline(coords, {
+                        color: "white", weight: 11, opacity: 1
+                    }).addTo(mapaTrazabilidad);
+
+                    L.polyline(coords, {
+                        color: "#0f172a", weight: 6, opacity: 0.95,
+                        dashArray: '12,8'
+                    }).addTo(mapaTrazabilidad);
+
                     estadoRuta.innerHTML = '<span>⚠️ OSRM no disponible · línea aproximada</span>';
                 }
             }
 
-            // Marcadores numerados
             evs.forEach((e, i) => {
-                const color = e.validacion_geo === 'OK' ? '#10b981' :
-                              e.validacion_geo === 'FUERA_GEOCERCA' ? '#ef4444' :
-                              e.validacion_geo === 'BAJA_PRECISION' ? '#f59e0b' : '#94a3b8';
+                const color = e.validacion_geo === 'OK' ? '#047857' :
+                              e.validacion_geo === 'FUERA_GEOCERCA' ? '#b91c1c' :
+                              e.validacion_geo === 'BAJA_PRECISION' ? '#c2410c' : '#334155';
 
                 const icon = L.divIcon({
                     className: 'numero-marcador',
-                    html: `<div style="background:${color};color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);">${i + 1}</div>`,
-                    iconSize: [28, 28], iconAnchor: [14, 14]
+                    html: `<div style="background:${color};color:white;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.5);font-size:13px;">${i + 1}</div>`,
+                    iconSize: [30, 30], iconAnchor: [15, 15]
                 });
 
                 L.marker([parseFloat(e.lat_capturada), parseFloat(e.lon_capturada)], { icon })
@@ -1865,17 +1952,17 @@
                         <b>${i + 1}. ${e.evento}</b><br>
                         ${e.fechaHora}<br>
                         Ubicación: ${e.ubicacion}<br>
+                        Fuente: <b>${e.fuente_ubicacion || 'N/A'}</b><br>
                         Validación: <b>${e.validacion_geo || 'N/D'}</b><br>
-                        ${e.distancia_declarada_m ? 'Distancia declarada: ' + Math.round(e.distancia_declarada_m) + ' m<br>' : ''}
+                        ${e.distancia_declarada_m ? 'Distancia: ' + Math.round(e.distancia_declarada_m) + ' m<br>' : ''}
                         ${e.precision_m ? 'Precisión GPS: ' + Math.round(e.precision_m) + ' m' : ''}
                     `).addTo(mapaTrazabilidad);
             });
 
-            // 🚚 Inicio y 🏁 Fin
             const camionIcono = L.divIcon({
                 className: 'camion-icono-wrapper',
                 html: `<div class="camion-icono">🚚</div>`,
-                iconSize: [36, 36], iconAnchor: [18, 18]
+                iconSize: [38, 38], iconAnchor: [19, 19]
             });
 
             L.marker(coords[0], { icon: camionIcono, zIndexOffset: 1000 })
@@ -1885,8 +1972,8 @@
             if (coords.length >= 2) {
                 const metaIcono = L.divIcon({
                     className: 'meta-icono-wrapper',
-                    html: `<div style="background:#ef4444;color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:20px;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.3);">🏁</div>`,
-                    iconSize: [36, 36], iconAnchor: [18, 18]
+                    html: `<div class="meta-icono">🏁</div>`,
+                    iconSize: [38, 38], iconAnchor: [19, 19]
                 });
                 L.marker(coords[coords.length - 1], { icon: metaIcono, zIndexOffset: 1000 })
                     .bindPopup(`<b>🏁 Fin de ruta</b><br>${evs[evs.length-1].evento} · ${evs[evs.length-1].fechaHora}`)
@@ -1899,8 +1986,9 @@
                 evs.map((e, i) => `
                     <div class="traza-item">
                         <b>${i + 1}. ${e.evento}</b> — ${e.fechaHora}<br>
-                        📍 ${e.ubicacion} · <span style="color:${e.validacion_geo === 'OK' ? '#10b981' : '#ef4444'}">
+                        📍 ${e.ubicacion} · <span style="color:${e.validacion_geo === 'OK' ? '#047857' : '#b91c1c'}">
                         ${e.validacion_geo || 'N/D'}</span>
+                        <span style="color:#64748b; font-size:0.75rem;"> · ${e.fuente_ubicacion || 'N/A'}</span>
                         ${e.distancia_declarada_m ? ' · ' + Math.round(e.distancia_declarada_m) + ' m' : ''}
                     </div>`).join('');
         }
@@ -2086,10 +2174,10 @@
         }
 
         // =========================================================
-        // INICIALIZACIÓN
+        // INIT
         // =========================================================
         async function init() {
-            console.log("🚀 Inicializando LogiTrace v1.4...");
+            console.log("🚀 Inicializando LogiTrace v1.5...");
             try {
                 await cargarUbicaciones();
                 actualizarSelectoresUbicacion();
@@ -2109,7 +2197,7 @@
                     if (el) el.addEventListener("input", actualizarPreviewEAN);
                 });
 
-                console.log("✅ App v1.4 inicializada");
+                console.log("✅ App v1.5 lista");
             } catch (error) {
                 console.error("❌ Error init:", error);
             }
