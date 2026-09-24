@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiTrace UPEC</title>
+    <title>LogiTrace UPEC v1.3</title>
 
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-ant-path@1.3.0/dist/leaflet-ant-path.js"></script>
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -28,9 +29,11 @@
 
         .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
         h2 { color: #059669; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; font-size: 1.4rem; }
+        h3 { color: #059669; }
         label { font-weight: 600; display: block; margin-top: 10px; font-size: 0.9rem; }
         input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 5px; margin-bottom: 10px; font-size: 15px; }
         input:focus, select:focus { border-color: #10b981; outline: none; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
+        small.hint { color: #64748b; font-size: 0.75rem; display: block; margin-top: -5px; margin-bottom: 8px; }
 
         button { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; font-size: 0.9rem; margin: 3px; }
         .btn-principal { background: #059669; color: white; }
@@ -83,28 +86,24 @@
 
         footer { text-align: center; padding: 20px; color: #64748b; margin-top: 30px; }
 
-        /* ===== MAPA PRINCIPAL ===== */
-        .mapa-full-container { position: relative; width: 100%; height: calc(100vh - 150px); min-height: 500px; overflow: hidden; border-radius: 0; }
-        #mapa-full { width: 100%; height: 100%; background: #e8f4f8; border: none; border-radius: 0; }
+        .mapa-full-container { position: relative; width: 100%; height: calc(100vh - 150px); min-height: 500px; overflow: hidden; }
+        #mapa-full { width: 100%; height: 100%; background: #e8f4f8; }
 
-        .mapa-filtros-superpuestos { position: absolute; top: 20px; left: 20px; right: 20px; z-index: 1000; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(10px); padding: 12px 18px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+        .mapa-filtros-superpuestos { position: absolute; top: 20px; left: 20px; right: 20px; z-index: 1000; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(10px); padding: 12px 18px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
         .mapa-filtros-superpuestos > div { flex: 1; min-width: 140px; }
-        .mapa-filtros-superpuestos label { display: block; font-weight: 600; font-size: 0.75rem; color: #334155; margin-bottom: 3px; margin-top: 0; }
-        .mapa-filtros-superpuestos select { width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; font-size: 0.85rem; margin-bottom: 0; }
-        .mapa-filtros-superpuestos .btn-verde { flex: 0 0 auto; padding: 7px 18px; font-weight: 600; font-size: 0.85rem; white-space: nowrap; width: 100%; }
+        .mapa-filtros-superpuestos label { font-size: 0.75rem; margin: 0 0 3px 0; }
+        .mapa-filtros-superpuestos select { padding: 7px 10px; font-size: 0.85rem; margin: 0; }
 
-        .mapa-leyenda-superpuesta { position: absolute; bottom: 20px; left: 20px; z-index: 1000; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); padding: 8px 14px; border-radius: 10px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.7rem; }
+        .mapa-leyenda-superpuesta { position: absolute; bottom: 20px; left: 20px; z-index: 1000; background: rgba(255, 255, 255, 0.9); padding: 8px 14px; border-radius: 10px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.7rem; }
         .mapa-leyenda-superpuesta span { display: flex; align-items: center; gap: 4px; }
-        .mapa-leyenda-color { width: 12px; height: 12px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0, 0, 0, 0.1); }
+        .mapa-leyenda-color { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 
         .mapa-zoom-buttons { position: absolute; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 5px; }
-        .mapa-zoom-buttons button { width: 38px; height: 38px; border-radius: 8px; border: none; background: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); font-size: 18px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; }
-        .mapa-zoom-buttons button:hover { background: #f0fdfa; transform: scale(1.05); }
+        .mapa-zoom-buttons button { width: 38px; height: 38px; border-radius: 8px; background: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); font-size: 18px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; }
 
-        /* ===== PARTE 2 - NUEVOS ESTILOS ===== */
         .mini-mapa-ubicacion { width: 100%; height: 260px; border-radius: 10px; margin-top: 8px; border: 2px solid #e2e8f0; }
         .coord-chip { display: inline-block; background: #f0fdfa; color: #065f46; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin: 4px 4px 0 0; border: 1px solid #a7f3d0; }
-        #mapa-trazabilidad { width: 100%; height: 420px; border-radius: 12px; margin-top: 15px; }
+        #mapa-trazabilidad { width: 100%; height: 450px; border-radius: 12px; margin-top: 15px; }
         .numero-marcador { background: transparent; border: none; }
         .traza-item { background: #f8fafc; border-left: 4px solid #059669; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; }
         .traza-item b { color: #059669; }
@@ -114,30 +113,52 @@
         .modal-gps-contenido { background: white; border-radius: 14px; max-width: 700px; width: 100%; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
         #mapa-modal { width: 100%; height: 340px; border-radius: 10px; margin: 12px 0; }
 
+        .camion-icono {
+            background: #059669;
+            color: white;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border: 3px solid white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        }
+
+        .preview-ean {
+            background: linear-gradient(135deg, #f0fdfa, #dcfce7);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px dashed #10b981;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .preview-ean .titulo { color: #64748b; font-size: 0.8rem; margin-bottom: 5px; }
+        .preview-ean .valor { font-family: 'Courier New', monospace; font-size: 1.6rem; font-weight: 700; color: #059669; letter-spacing: 3px; }
+        .preview-ean .desglose { font-size: 0.7rem; color: #64748b; margin-top: 8px; }
+        .preview-ean .desglose span { display: inline-block; padding: 2px 6px; margin: 0 2px; border-radius: 4px; }
+        .des-pais { background: #dbeafe; color: #1e40af; }
+        .des-empresa { background: #d1fae5; color: #065f46; }
+        .des-producto { background: #fed7aa; color: #9a3412; }
+        .des-verif { background: #fecaca; color: #991b1b; }
+
         @media(max-width: 768px) {
             nav button { flex: 1 0 45%; font-size: 0.8rem; padding: 6px 10px; }
             .grid { grid-template-columns: 1fr; }
             .estadisticas { grid-template-columns: 1fr 1fr; }
-            .mapa-full-container { height: calc(100vh - 130px); min-height: 350px; }
-            .mapa-filtros-superpuestos { top: 10px; left: 10px; right: 10px; padding: 10px 14px; flex-direction: column; align-items: stretch; }
-            .mapa-filtros-superpuestos > div { flex: 1; min-width: 0; }
-            .mapa-filtros-superpuestos .btn-verde { width: 100%; }
-            .mapa-leyenda-superpuesta { bottom: 10px; left: 10px; padding: 6px 10px; font-size: 0.6rem; gap: 6px; }
-            .mapa-zoom-buttons { bottom: 10px; right: 10px; }
-            .mapa-zoom-buttons button { width: 32px; height: 32px; font-size: 16px; }
-            #mapa-trazabilidad { height: 320px; }
-        }
-        @media(max-width: 480px) {
-            .estadisticas { grid-template-columns: 1fr; }
-            .mapa-full-container { height: calc(100vh - 120px); min-height: 300px; }
+            .mapa-full-container { height: calc(100vh - 130px); }
+            .mapa-filtros-superpuestos { flex-direction: column; align-items: stretch; }
+            #mapa-trazabilidad { height: 350px; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>📦 LogiTrace UPEC</h1>
-        <p>Trazabilidad Logística con Geolocalización</p>
+        <h1>📦 LogiTrace UPEC v1.3</h1>
+        <p>Trazabilidad Logística con EAN-13, QR, RFID y Geolocalización</p>
     </header>
 
     <nav>
@@ -184,14 +205,17 @@
         <section id="productos" class="seccion">
             <div class="card">
                 <h2>📦 Registro de producto</h2>
+
+                <h3 style="margin-top:10px; color:#64748b; font-size:1rem;">Identificación del producto</h3>
                 <div class="grid">
                     <div>
-                        <label>Código *</label>
+                        <label>Código interno *</label>
                         <input type="text" id="codigoProducto" placeholder="Ej: P001">
+                        <small class="hint">Referencia interna (no el EAN)</small>
                     </div>
                     <div>
                         <label>Nombre *</label>
-                        <input type="text" id="nombreProducto" placeholder="Nombre">
+                        <input type="text" id="nombreProducto" placeholder="Nombre del producto">
                     </div>
                     <div>
                         <label>Categoría *</label>
@@ -217,6 +241,43 @@
                         <label>Vencimiento</label>
                         <input type="date" id="vencimientoProducto">
                     </div>
+                </div>
+
+                <h3 style="margin-top:20px; color:#64748b; font-size:1rem;">Estructura EAN-13</h3>
+                <p style="color:#64748b; font-size:0.85rem; margin-bottom:10px;">
+                    Prefijo GS1 (país + empresa) y código interno del producto. El dígito verificador se calcula automáticamente.
+                </p>
+                <div class="grid">
+                    <div>
+                        <label>País GS1 (3 dígitos) *</label>
+                        <input type="text" id="paisEAN" placeholder="786" maxlength="3" value="786">
+                        <small class="hint">786 = Ecuador · 841 = España · 750 = México</small>
+                    </div>
+                    <div>
+                        <label>Empresa GS1 (4 dígitos) *</label>
+                        <input type="text" id="empresaEAN" placeholder="1234" maxlength="4" value="1234">
+                        <small class="hint">Código de 4 dígitos de tu empresa</small>
+                    </div>
+                    <div>
+                        <label>Producto (5 dígitos) *</label>
+                        <input type="text" id="productoEAN" placeholder="00001" maxlength="5">
+                        <small class="hint">Si se deja vacío, se calcula del código interno</small>
+                    </div>
+                </div>
+
+                <div class="preview-ean">
+                    <div class="titulo">Vista previa del EAN-13</div>
+                    <div class="valor" id="previewEAN">---------</div>
+                    <div class="desglose" id="desgloseEAN">
+                        <span class="des-pais">País</span>
+                        <span class="des-empresa">Empresa</span>
+                        <span class="des-producto">Producto</span>
+                        <span class="des-verif">Verif.</span>
+                    </div>
+                </div>
+
+                <h3 style="margin-top:20px; color:#64748b; font-size:1rem;">Ubicaciones logísticas</h3>
+                <div class="grid">
                     <div>
                         <label>Origen *</label>
                         <select id="origenProducto"><option value="">Seleccione ubicación</option></select>
@@ -245,20 +306,20 @@
             </div>
             <div class="grid">
                 <div class="codigo-box">
-                    <h3>Código de barras</h3>
+                    <h3>EAN-13</h3>
                     <svg id="barcode"></svg>
-                    <p id="valorBarcode"></p>
+                    <p id="valorBarcode" style="font-family:monospace; font-weight:bold;"></p>
                     <button class="btn-secundario" onclick="imprimirElemento('barcode')">Imprimir</button>
                 </div>
                 <div class="codigo-box">
-                    <h3>Código QR</h3>
+                    <h3>QR (con JSON)</h3>
                     <div id="qrcode"></div>
-                    <p id="valorQR"></p>
+                    <p id="valorQR" style="font-family:monospace; font-size:0.75rem;"></p>
                     <button class="btn-secundario" onclick="imprimirQR()">Imprimir</button>
                 </div>
                 <div class="codigo-box">
-                    <h3>RFID simulado</h3>
-                    <h2 id="valorRFID">---</h2>
+                    <h3>RFID simulado (EPC)</h3>
+                    <h2 id="valorRFID" style="font-size:0.9rem; word-break:break-all;">---</h2>
                 </div>
             </div>
         </section>
@@ -267,6 +328,9 @@
         <section id="lector" class="seccion">
             <div class="card">
                 <h2>📷 Lector de códigos</h2>
+                <p style="color:#64748b; font-size:0.85rem; margin-bottom:10px;">
+                    Reconoce EAN-13, código interno, RFID y QR con JSON.
+                </p>
                 <button class="btn-principal" onclick="iniciarScanner()">📷 Activar cámara</button>
                 <button class="btn-rojo" onclick="detenerScanner()">Detener</button>
                 <div id="reader"></div>
@@ -329,7 +393,7 @@
         <section id="ubicaciones" class="seccion">
             <div class="card">
                 <h2>📍 Gestión de ubicaciones</h2>
-                <p style="color:#64748b; margin-bottom:15px;">Registre ubicaciones con coordenadas. Puede capturarlas con el botón "Mi posición" o haciendo clic en el mapa.</p>
+                <p style="color:#64748b; margin-bottom:15px;">Capture con "Mi posición" o haciendo clic en el mapa.</p>
                 <div class="grid">
                     <div>
                         <label>ID *</label>
@@ -370,7 +434,7 @@
                         <select id="padreUbicacion"><option value="">Sin padre</option></select>
                     </div>
                     <div style="grid-column: 1 / -1;">
-                        <label>📍 O haz clic en el mapa para fijar la coordenada</label>
+                        <label>📍 O haz clic en el mapa</label>
                         <div id="mini-mapa-ubicacion" class="mini-mapa-ubicacion"></div>
                     </div>
                 </div>
@@ -401,13 +465,11 @@
                 <div class="grid">
                     <div>
                         <label>Buscar</label>
-                        <input type="text" id="busquedaInventario" oninput="actualizarInventario()" placeholder="Buscar...">
+                        <input type="text" id="busquedaInventario" oninput="actualizarInventario()" placeholder="Buscar por código, EAN o nombre...">
                     </div>
                     <div>
                         <label>Filtrar</label>
-                        <select id="filtroCategoria" onchange="actualizarInventario()">
-                            <option value="">Todas</option>
-                        </select>
+                        <select id="filtroCategoria" onchange="actualizarInventario()"><option value="">Todas</option></select>
                     </div>
                 </div>
             </div>
@@ -417,15 +479,17 @@
             </div>
             <div class="card">
                 <h2>📋 Productos</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Código</th><th>Producto</th><th>Categoría</th>
-                            <th>Lote</th><th>Cantidad</th><th>Ubicación</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaInventario"></tbody>
-                </table>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Código</th><th>EAN-13</th><th>Producto</th><th>Categoría</th>
+                                <th>Lote</th><th>Cantidad</th><th>Ubicación</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaInventario"></tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -446,8 +510,8 @@
                 </div>
             </div>
             <div class="card">
-                <h2>🗺️ Trayectoria del producto</h2>
-                <label>Seleccionar producto para ver su recorrido</label>
+                <h2>🗺️ Trayectoria del producto (ruta animada)</h2>
+                <label>Seleccionar producto</label>
                 <select id="selectorTrazabilidad" onchange="dibujarTrayectoria()">
                     <option value="">-- Selecciona un producto --</option>
                 </select>
@@ -526,7 +590,7 @@
                 <div style="margin-top:15px;">
                     <button class="btn-principal" onclick="exportarGeoJSON('eventos')">📥 eventos.geojson</button>
                     <button class="btn-azul" onclick="exportarGeoJSON('ubicaciones')">📥 ubicaciones.geojson</button>
-                    <button class="btn-verde" onclick="exportarGeoJSON('todos')">📥 Ambos (combinado)</button>
+                    <button class="btn-verde" onclick="exportarGeoJSON('todos')">📥 Ambos</button>
                     <button class="btn-secundario" onclick="actualizarDashboard()">🔄 Actualizar</button>
                 </div>
             </div>
@@ -534,13 +598,10 @@
 
     </main>
 
-    <!-- Modal para seleccionar punto en el mapa (fallback GPS) -->
     <div id="modalGPS" class="modal-gps">
         <div class="modal-gps-contenido">
             <h3 style="color:#059669; margin-bottom:8px;">📍 Seleccionar posición manualmente</h3>
-            <p style="font-size:0.85rem;color:#64748b;">
-                Haz clic en el mapa para marcar dónde ocurrió el evento.
-            </p>
+            <p style="font-size:0.85rem;color:#64748b;">Haz clic en el mapa para marcar dónde ocurrió el evento.</p>
             <div id="mapa-modal"></div>
             <div id="coords-seleccionadas" style="margin-bottom:10px;"></div>
             <button class="btn-principal" onclick="confirmarPuntoManual()">✅ Usar esta posición</button>
@@ -549,14 +610,14 @@
     </div>
 
     <footer>
-        <p>LogiTrace UPEC | Trazabilidad logística con geolocalización</p>
+        <p>LogiTrace UPEC v1.3 | Trazabilidad logística con EAN-13, QR, RFID y Geolocalización</p>
     </footer>
 
     <script>
         // =========================================================
         // CONFIGURACIÓN - ⚠️ REEMPLAZA CON TU URL
         // =========================================================
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMp4v-PhC_Ei2-sSwWrEYhriFl4S9AHXnT7spzG9mKhYsYBnHBld1185FTthAGi5FuAA/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxaW_PjAMiR42Lckhca_HU3Wjc_G5eMiHYnIlEwjncz7SrrGtLE4HadnlGBnDP2VXk2-A/exec";
 
         // =========================================================
         // VARIABLES GLOBALES
@@ -571,7 +632,6 @@
         let mapaFull = null;
         let marcadoresMapaFull = [];
 
-        // Parte 2
         let miniMapaUbicacion = null;
         let marcadorMiniMapa = null;
         let mapaModal = null;
@@ -581,16 +641,78 @@
         let resolverModalGPS = null;
 
         // =========================================================
+        // EAN-13: CÁLCULO DEL DÍGITO VERIFICADOR
+        // =========================================================
+        function calcularVerificadorEAN13(base12) {
+            if (!/^\d{12}$/.test(base12)) return null;
+            let suma = 0;
+            for (let i = 0; i < 12; i++) {
+                suma += parseInt(base12[i]) * (i % 2 === 0 ? 1 : 3);
+            }
+            return ((10 - (suma % 10)) % 10).toString();
+        }
+
+        function construirEAN13(pais, empresa, producto) {
+            const p = String(pais).padStart(3, "0").slice(0, 3);
+            const e = String(empresa).padStart(4, "0").slice(0, 4);
+            const pr = String(producto).padStart(5, "0").slice(0, 5);
+            const base12 = p + e + pr;
+            const ver = calcularVerificadorEAN13(base12);
+            if (ver === null) return null;
+            return base12 + ver;
+        }
+
+        function validarEAN13(codigo) {
+            if (!/^\d{13}$/.test(codigo)) return false;
+            const base12 = codigo.substring(0, 12);
+            const ver = codigo[12];
+            return calcularVerificadorEAN13(base12) === ver;
+        }
+
+        function codigoA5Digitos(codigo) {
+            const soloDigitos = String(codigo).replace(/\D/g, "");
+            if (soloDigitos.length >= 5) return soloDigitos.slice(-5);
+            let hash = 0;
+            for (let i = 0; i < codigo.length; i++) {
+                hash = (hash * 31 + codigo.charCodeAt(i)) % 100000;
+            }
+            return String(hash).padStart(5, "0");
+        }
+
+        function actualizarPreviewEAN() {
+            const pais = document.getElementById("paisEAN").value || "786";
+            const empresa = document.getElementById("empresaEAN").value || "1234";
+            const productoInput = document.getElementById("productoEAN").value;
+            const codigoInterno = document.getElementById("codigoProducto").value;
+            const producto = productoInput || codigoA5Digitos(codigoInterno || "00000");
+            const ean = construirEAN13(pais, empresa, producto);
+
+            const preview = document.getElementById("previewEAN");
+            if (ean) {
+                preview.textContent = ean;
+                document.getElementById("desgloseEAN").innerHTML = `
+                    <span class="des-pais">${ean.substring(0,3)}</span>
+                    <span class="des-empresa">${ean.substring(3,7)}</span>
+                    <span class="des-producto">${ean.substring(7,12)}</span>
+                    <span class="des-verif">${ean.substring(12,13)}</span>
+                `;
+            } else {
+                preview.textContent = "---------";
+                document.getElementById("desgloseEAN").innerHTML = `
+                    <span class="des-pais">País</span>
+                    <span class="des-empresa">Empresa</span>
+                    <span class="des-producto">Producto</span>
+                    <span class="des-verif">Verif.</span>
+                `;
+            }
+        }
+
+        // =========================================================
         // NAVEGACIÓN
         // =========================================================
         function mostrarSeccion(id, e) {
             document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
             if (e && e.target) e.target.classList.add("active");
-            else {
-                const btn = Array.from(document.querySelectorAll("nav button"))
-                    .find(b => b.getAttribute("onclick")?.includes("'" + id + "'"));
-                if (btn) btn.classList.add("active");
-            }
             document.querySelectorAll(".seccion").forEach(s => s.classList.remove("activa"));
             document.getElementById(id).classList.add("activa");
 
@@ -600,12 +722,11 @@
             mostrarEventos();
             cargarTablaUbicaciones();
 
-            if (id === "mapa") {
-                setTimeout(() => { inicializarMapaFull(); actualizarMapaFull(); }, 500);
-            }
+            if (id === "mapa") setTimeout(() => { inicializarMapaFull(); actualizarMapaFull(); }, 500);
             if (id === "dashboard") actualizarDashboard();
             if (id === "ubicaciones") setTimeout(inicializarMiniMapaUbicacion, 300);
             if (id === "eventos") actualizarSelectorTrazabilidad();
+            if (id === "productos") actualizarPreviewEAN();
         }
 
         // =========================================================
@@ -628,25 +749,19 @@
         }
 
         // =========================================================
-        // CARGAR DATOS DESDE GOOGLE SHEETS
+        // CARGAR DATOS
         // =========================================================
         async function cargarDatosDesdeSheets() {
             try {
-                console.log("📡 Cargando datos desde Google Sheets...");
                 const response = await fetch(GOOGLE_SCRIPT_URL, {
                     method: "POST",
                     body: JSON.stringify({ accion: "consultar" })
                 });
                 const data = await response.json();
-                console.log("📦 Respuesta:", data);
-
                 if (data.success) {
                     productos = data.productos || [];
                     eventos = data.eventos || [];
                     if (data.ubicaciones) ubicaciones = data.ubicaciones;
-
-                    console.log("✅ Productos:", productos.length, "Eventos:", eventos.length, "Ubicaciones:", ubicaciones.length);
-
                     actualizarEstadisticas();
                     actualizarSelectores();
                     actualizarInventario();
@@ -654,12 +769,10 @@
                     actualizarDashboard();
                     actualizarSelectorTrazabilidad();
                     return true;
-                } else {
-                    console.warn("⚠️ No se pudieron cargar datos:", data.message);
-                    return false;
                 }
+                return false;
             } catch (error) {
-                console.error("❌ Error cargando datos:", error);
+                console.error("Error cargando datos:", error);
                 return false;
             }
         }
@@ -677,19 +790,43 @@
             const origen = document.getElementById("origenProducto").value;
             const destino = document.getElementById("destinoProducto").value;
             const ubicacion = document.getElementById("ubicacionProducto").value;
+            const pais = document.getElementById("paisEAN").value.trim();
+            const empresa = document.getElementById("empresaEAN").value.trim();
+            const producto5Input = document.getElementById("productoEAN").value.trim();
 
             if (!codigo || !nombre || !categoria || !lote || !cantidad || !origen || !destino || !ubicacion) {
                 mostrarMensajeProducto("Complete todos los campos obligatorios.", false);
                 return;
             }
+            if (!/^\d{3}$/.test(pais)) {
+                mostrarMensajeProducto("El país GS1 debe tener exactamente 3 dígitos.", false);
+                return;
+            }
+            if (!/^\d{4}$/.test(empresa)) {
+                mostrarMensajeProducto("El código de empresa debe tener exactamente 4 dígitos.", false);
+                return;
+            }
             if (productos.some(p => p.codigo === codigo)) {
-                mostrarMensajeProducto("Ya existe un producto con este código.", false);
+                mostrarMensajeProducto("Ya existe un producto con este código interno.", false);
+                return;
+            }
+
+            const producto5 = producto5Input || codigoA5Digitos(codigo);
+            const ean13 = construirEAN13(pais, empresa, producto5);
+
+            if (!ean13) {
+                mostrarMensajeProducto("Error al generar EAN-13.", false);
+                return;
+            }
+            if (productos.some(p => p.ean13 === ean13)) {
+                mostrarMensajeProducto("Ya existe un producto con este EAN-13.", false);
                 return;
             }
 
             const nuevoProducto = {
                 id: codigo,
                 codigo,
+                ean13,
                 nombre,
                 categoria,
                 lote,
@@ -699,23 +836,25 @@
                 destino,
                 ubicacion,
                 tipoIdentificacion: "Pendiente",
-                codigoGenerado: codigo,
+                codigoGenerado: ean13,
                 rfid: null,
                 ultimaActualizacion: new Date().toLocaleString()
             };
 
             productos.push(nuevoProducto);
-            mostrarMensajeProducto("Producto registrado correctamente.", true);
+            mostrarMensajeProducto("✅ Producto registrado. EAN-13: " + ean13, true);
 
             ["codigoProducto", "nombreProducto", "categoriaProducto", "loteProducto",
              "cantidadProducto", "vencimientoProducto", "origenProducto",
-             "destinoProducto", "ubicacionProducto"].forEach(id => {
-                document.getElementById(id).value = "";
+             "destinoProducto", "ubicacionProducto", "productoEAN"].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = "";
             });
 
             actualizarEstadisticas();
             actualizarSelectores();
             actualizarSelectorTrazabilidad();
+            actualizarPreviewEAN();
             enviarProductoGoogleSheets(nuevoProducto);
         }
 
@@ -735,21 +874,39 @@
             const producto = productos.find(p => p.id === id);
             if (!producto) { alert("Producto no encontrado."); return; }
 
-            JsBarcode("#barcode", producto.codigo, { format: "CODE128", displayValue: true, width: 2, height: 70 });
-            document.getElementById("valorBarcode").textContent = producto.codigo;
+            const ean13 = producto.ean13 || construirEAN13("786", "1234", codigoA5Digitos(producto.codigo));
+            producto.ean13 = ean13;
 
+            // EAN-13
+            JsBarcode("#barcode", ean13, {
+                format: "EAN13",
+                displayValue: true,
+                width: 2,
+                height: 70,
+                fontSize: 16,
+                margin: 10
+            });
+            document.getElementById("valorBarcode").textContent = ean13;
+
+            // QR con JSON
+            const qrData = JSON.stringify({
+                ean: ean13,
+                lote: producto.lote,
+                producto: producto.nombre,
+                codigo: producto.codigo
+            });
             const contenedorQR = document.getElementById("qrcode");
             contenedorQR.innerHTML = "";
-            QRCode.toCanvas(producto.codigo, { width: 200, margin: 2 }, function (error, canvas) {
+            QRCode.toCanvas(qrData, { width: 220, margin: 2 }, function (error, canvas) {
                 if (!error) contenedorQR.appendChild(canvas);
             });
-            document.getElementById("valorQR").textContent = producto.codigo;
+            document.getElementById("valorQR").textContent = "EAN: " + ean13 + " | Lote: " + producto.lote;
 
-            const rfid = "UPEC-" + producto.categoria.substring(0, 3).toUpperCase() + "-" +
-                producto.codigo + "-" + producto.lote + "-" +
+            // RFID
+            const rfid = "UPEC-" + ean13 + "-" + producto.lote + "-" +
                 String(Math.floor(Math.random() * 9999)).padStart(4, "0");
             producto.rfid = rfid;
-            producto.tipoIdentificacion = "1D, QR y RFID";
+            producto.tipoIdentificacion = "EAN-13, QR y RFID";
             document.getElementById("valorRFID").textContent = rfid;
 
             actualizarSelectores();
@@ -757,7 +914,7 @@
         }
 
         // =========================================================
-        // LECTOR
+        // LECTOR (reconoce EAN-13, código interno, RFID y JSON)
         // =========================================================
         function iniciarScanner() {
             if (scanner) { alert("La cámara ya está activa."); return; }
@@ -785,20 +942,49 @@
         function procesarLectura(codigo, tipo) {
             codigoLeido = codigo;
             tipoLectura = tipo;
-            const producto = productos.find(p => p.codigo === codigo || p.rfid === codigo);
+
+            let datosQR = null;
+            try {
+                if (codigo.startsWith("{")) datosQR = JSON.parse(codigo);
+            } catch (e) { /* no JSON */ }
+
+            const codigoBusqueda = datosQR && datosQR.ean ? datosQR.ean : codigo;
+
+            const producto = productos.find(p =>
+                p.ean13 === codigoBusqueda ||
+                p.codigo === codigoBusqueda ||
+                p.rfid === codigoBusqueda
+            );
+
             const fecha = new Date().toLocaleString();
+
+            let mensajeEAN = "";
+            if (/^\d{13}$/.test(codigoBusqueda)) {
+                mensajeEAN = validarEAN13(codigoBusqueda)
+                    ? "✓ Dígito verificador EAN-13 válido"
+                    : "⚠️ Dígito verificador EAN-13 INVÁLIDO";
+            }
 
             if (producto) {
                 productoLeido = producto;
                 document.getElementById("resultadoLectura").className = "resultado exito";
                 document.getElementById("resultadoLectura").innerHTML =
-                    "<strong>✓ Producto encontrado</strong><br>ID: " + codigo + "<br>Producto: " + producto.nombre +
-                    "<br>Tecnología: " + tipo + "<br>Fecha: " + fecha;
+                    "<strong>✓ Producto encontrado</strong><br>" +
+                    "Código leído: " + codigoBusqueda + "<br>" +
+                    (datosQR ? "QR JSON → EAN: " + datosQR.ean + " | Lote: " + datosQR.lote + "<br>" : "") +
+                    "Producto: " + producto.nombre + "<br>" +
+                    "EAN-13: " + (producto.ean13 || "N/A") + "<br>" +
+                    "Tecnología: " + tipo + "<br>" +
+                    mensajeEAN + "<br>" +
+                    "Fecha: " + fecha;
             } else {
                 productoLeido = null;
                 document.getElementById("resultadoLectura").className = "resultado error";
                 document.getElementById("resultadoLectura").innerHTML =
-                    "<strong>✗ Producto no encontrado</strong><br>ID: " + codigo + "<br>Tecnología: " + tipo;
+                    "<strong>✗ Producto no encontrado</strong><br>" +
+                    "Código: " + codigoBusqueda + "<br>" +
+                    mensajeEAN + "<br>" +
+                    "Tecnología: " + tipo;
             }
         }
 
@@ -823,7 +1009,7 @@
         }
 
         // =========================================================
-        // REGISTRO DE EVENTO CON CAPTURA GPS + FALLBACK MODAL
+        // REGISTRAR EVENTO CON GPS
         // =========================================================
         async function registrarEvento() {
             if (!productoLeido) { alert("Primero lea un código o detecte RFID."); return; }
@@ -854,7 +1040,6 @@
                         "✅ " + lat.toFixed(6) + ", " + lon.toFixed(6) +
                         " — precisión: " + Math.round(precision) + " m";
                 } catch (error) {
-                    console.warn("⚠️ GPS falló:", error.message);
                     document.getElementById("estadoGPS").textContent =
                         "⚠️ GPS no disponible. Selecciona el punto en el mapa...";
                     const manual = await abrirModalGPS();
@@ -864,8 +1049,6 @@
                         fuente = "MANUAL_MAPA";
                         document.getElementById("estadoGPS").textContent =
                             "📌 Punto manual: " + lat.toFixed(6) + ", " + lon.toFixed(6);
-                    } else {
-                        document.getElementById("estadoGPS").textContent = "❌ Sin ubicación (se guardará como SIN_GPS)";
                     }
                 }
             } else {
@@ -937,7 +1120,7 @@
         }
 
         // =========================================================
-        // MODAL GPS (fallback)
+        // MODAL GPS
         // =========================================================
         function abrirModalGPS() {
             return new Promise(resolve => {
@@ -978,7 +1161,7 @@
         }
 
         // =========================================================
-        // MINI-MAPA DE UBICACIONES
+        // MINI-MAPA UBICACIONES
         // =========================================================
         function inicializarMiniMapaUbicacion() {
             if (miniMapaUbicacion) { miniMapaUbicacion.invalidateSize(); return; }
@@ -1000,7 +1183,7 @@
         }
 
         // =========================================================
-        // UBICACIONES - CRUD
+        // UBICACIONES CRUD
         // =========================================================
         async function cargarUbicaciones() {
             try {
@@ -1195,7 +1378,6 @@
 
         async function actualizarMapaFull() {
             if (!mapaFull) { inicializarMapaFull(); await new Promise(r => setTimeout(r, 300)); }
-
             marcadoresMapaFull.forEach(m => mapaFull.removeLayer(m));
             marcadoresMapaFull = [];
 
@@ -1208,18 +1390,15 @@
                 ubicaciones.forEach(u => {
                     const lat = parseFloat(u.lat), lon = parseFloat(u.lon);
                     if (!lat || !lon || isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) return;
-
                     const color = u.tipo === "Bodega" ? "#3b82f6" :
                                   u.tipo === "Tienda" ? "#10b981" :
                                   u.tipo === "Almacén" ? "#f59e0b" : "#8b5cf6";
-
                     const marker = L.circleMarker([lat, lon], {
                         radius: 12, fillColor: color, color: 'white',
                         weight: 3, fillOpacity: 0.85
                     }).bindPopup(`<strong>${u.nombre}</strong><br>Tipo: ${u.tipo}<br>Radio: ${u.radio_geocerca_m}m`);
                     grupo.addLayer(marker);
                     marcadoresMapaFull.push(marker);
-
                     if (u.radio_geocerca_m > 0) {
                         const circle = L.circle([lat, lon], {
                             radius: parseFloat(u.radio_geocerca_m),
@@ -1237,14 +1416,11 @@
                     const lat = parseFloat(e.lat_capturada) || parseFloat(e.lat) || 0;
                     const lon = parseFloat(e.lon_capturada) || parseFloat(e.lon) || 0;
                     if (!lat || !lon || isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) return;
-
                     const validacion = e.validacion_geo || "SIN_GPS";
                     if (filtroValidacion !== "todos" && validacion !== filtroValidacion) return;
-
                     const color = validacion === "OK" ? "#10b981" :
                                   validacion === "FUERA_GEOCERCA" ? "#ef4444" :
                                   validacion === "BAJA_PRECISION" ? "#f59e0b" : "#94a3b8";
-
                     const marker = L.circleMarker([lat, lon], {
                         radius: 10, fillColor: color, color: 'white',
                         weight: 2, fillOpacity: 0.9
@@ -1282,7 +1458,7 @@
         }
 
         // =========================================================
-        // TRAYECTORIA DEL PRODUCTO
+        // TRAYECTORIA CON RUTA ANIMADA
         // =========================================================
         function actualizarSelectorTrazabilidad() {
             const sel = document.getElementById("selectorTrazabilidad");
@@ -1292,7 +1468,7 @@
             productos.forEach(p => {
                 const op = document.createElement("option");
                 op.value = p.id;
-                op.textContent = p.nombre + " (" + p.codigo + ")";
+                op.textContent = p.nombre + " (" + (p.ean13 || p.codigo) + ")";
                 if (p.id === valorActual) op.selected = true;
                 sel.appendChild(op);
             });
@@ -1334,10 +1510,29 @@
 
             const coords = evs.map(e => [parseFloat(e.lat_capturada), parseFloat(e.lon_capturada)]);
 
-            L.polyline(coords, {
-                color: '#059669', weight: 3, opacity: 0.75, dashArray: '8,6'
-            }).addTo(mapaTrazabilidad);
+            // RUTA ANIMADA
+            if (coords.length >= 2) {
+                try {
+                    const rutaAnimada = L.polyline.antPath(coords, {
+                        "color": "#0f766e",
+                        "delay": 800,
+                        "dashArray": [10, 20],
+                        "weight": 4,
+                        "opacity": 0.9,
+                        "pulseColor": "#10b981",
+                        "paused": false,
+                        "reverse": false
+                    });
+                    rutaAnimada.addTo(mapaTrazabilidad);
+                } catch (err) {
+                    // Fallback si AntPath no carga
+                    L.polyline(coords, {
+                        color: '#059669', weight: 3, dashArray: '8,6'
+                    }).addTo(mapaTrazabilidad);
+                }
+            }
 
+            // Marcadores numerados
             evs.forEach((e, i) => {
                 const color = e.validacion_geo === 'OK' ? '#10b981' :
                               e.validacion_geo === 'FUERA_GEOCERCA' ? '#ef4444' :
@@ -1359,6 +1554,23 @@
                         ${e.precision_m ? 'Precisión: ' + Math.round(e.precision_m) + ' m' : ''}
                     `).addTo(mapaTrazabilidad);
             });
+
+            // Camiones en origen y destino
+            const camionIcono = L.divIcon({
+                className: 'camion-icono-wrapper',
+                html: `<div class="camion-icono">🚚</div>`,
+                iconSize: [36, 36], iconAnchor: [18, 18]
+            });
+
+            L.marker(coords[0], { icon: camionIcono, zIndexOffset: 1000 })
+                .bindPopup(`<b>🚚 Inicio de ruta</b><br>${evs[0].evento} · ${evs[0].fechaHora}`)
+                .addTo(mapaTrazabilidad);
+
+            if (coords.length >= 2) {
+                L.marker(coords[coords.length - 1], { icon: camionIcono, zIndexOffset: 1000 })
+                    .bindPopup(`<b>🚚 Fin de ruta</b><br>${evs[evs.length-1].evento} · ${evs[evs.length-1].fechaHora}`)
+                    .addTo(mapaTrazabilidad);
+            }
 
             mapaTrazabilidad.fitBounds(L.latLngBounds(coords), { padding: [40, 40] });
 
@@ -1415,7 +1627,6 @@
                     const total = eventosList.length;
                     const ok = eventosList.filter(e => e.validacion_geo === "OK").length;
                     const fuera = eventosList.filter(e => e.validacion_geo === "FUERA_GEOCERCA").length;
-
                     document.getElementById("totalEventosDashboard").textContent = total;
                     document.getElementById("eventosOK").textContent = ok;
                     document.getElementById("eventosFuera").textContent = fuera;
@@ -1434,21 +1645,20 @@
             const tabla = document.getElementById("tablaInventario");
             if (!tabla) return;
             tabla.innerHTML = "";
-
             const filtrados = productos.filter(p => {
                 const coincideBusqueda = (p.codigo || "").toLowerCase().includes(busqueda) ||
-                    (p.nombre || "").toLowerCase().includes(busqueda);
+                    (p.nombre || "").toLowerCase().includes(busqueda) ||
+                    (p.ean13 || "").includes(busqueda);
                 const coincideCategoria = !categoriaFiltro || p.categoria === categoriaFiltro;
                 return coincideBusqueda && coincideCategoria;
             });
-
             filtrados.forEach(p => {
                 const fila = document.createElement("tr");
-                fila.innerHTML = `<td>${p.codigo}</td><td>${p.nombre}</td><td>${p.categoria}</td>
+                fila.innerHTML = `<td>${p.codigo}</td><td style="font-family:monospace;">${p.ean13 || '-'}</td>
+                    <td>${p.nombre}</td><td>${p.categoria}</td>
                     <td>${p.lote}</td><td>${p.cantidad}</td><td>${p.ubicacion}</td>`;
                 tabla.appendChild(fila);
             });
-
             mostrarResumenCategorias();
         }
 
@@ -1460,7 +1670,7 @@
             productos.forEach(p => {
                 if (!categorias[p.categoria]) categorias[p.categoria] = { productos: 0, cantidad: 0 };
                 categorias[p.categoria].productos++;
-                categorias[p.categoria].cantidad += p.cantidad;
+                categorias[p.categoria].cantidad += Number(p.cantidad || 0);
             });
             Object.keys(categorias).forEach(cat => {
                 const datos = categorias[cat];
@@ -1505,22 +1715,16 @@
             const selectorRFID = document.getElementById("selectorRFID");
             const filtroCategoria = document.getElementById("filtroCategoria");
 
-            if (selectorProducto) {
-                selectorProducto.innerHTML = '<option value="">Seleccione un producto</option>';
-            }
-            if (selectorRFID) {
-                selectorRFID.innerHTML = '<option value="">Seleccione RFID</option>';
-            }
-            if (filtroCategoria) {
-                filtroCategoria.innerHTML = '<option value="">Todas</option>';
-            }
+            if (selectorProducto) selectorProducto.innerHTML = '<option value="">Seleccione un producto</option>';
+            if (selectorRFID) selectorRFID.innerHTML = '<option value="">Seleccione RFID</option>';
+            if (filtroCategoria) filtroCategoria.innerHTML = '<option value="">Todas</option>';
 
             const categoriasUnicas = [...new Set(productos.map(p => p.categoria))];
             productos.forEach(p => {
                 if (selectorProducto) {
                     const opcion = document.createElement("option");
                     opcion.value = p.id;
-                    opcion.textContent = p.nombre + " - " + p.codigo;
+                    opcion.textContent = p.nombre + " - " + (p.ean13 || p.codigo);
                     selectorProducto.appendChild(opcion);
                 }
                 if (p.rfid && selectorRFID) {
@@ -1564,7 +1768,7 @@
         // INICIALIZACIÓN
         // =========================================================
         async function init() {
-            console.log("🚀 Inicializando LogiTrace...");
+            console.log("🚀 Inicializando LogiTrace v1.3...");
             try {
                 await cargarUbicaciones();
                 actualizarSelectoresUbicacion();
@@ -1576,14 +1780,17 @@
                 mostrarEventos();
                 actualizarDashboard();
                 actualizarSelectorTrazabilidad();
+                actualizarPreviewEAN();
 
-                console.log("✅ Aplicación inicializada correctamente");
+                // Listeners para preview EAN en vivo
+                ["paisEAN", "empresaEAN", "productoEAN", "codigoProducto"].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener("input", actualizarPreviewEAN);
+                });
+
+                console.log("✅ App inicializada");
             } catch (error) {
-                console.error("❌ Error en la inicialización:", error);
-                const msg = document.createElement("div");
-                msg.style.cssText = "background:#fee2e2; color:#991b1b; padding:15px; border-radius:8px; margin:10px; text-align:center;";
-                msg.textContent = "⚠️ Error al cargar datos desde Google Sheets. Verifica la conexión.";
-                document.querySelector("main").prepend(msg);
+                console.error("❌ Error init:", error);
             }
         }
 
