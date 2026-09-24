@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiTrace UPEC v1.5.1</title>
+    <title>LogiTrace UPEC v1.6</title>
 
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
@@ -115,41 +115,10 @@
         .modal-gps-contenido { background: white; border-radius: 14px; max-width: 700px; width: 100%; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
         #mapa-modal { width: 100%; height: 340px; border-radius: 10px; margin: 12px 0; }
 
-        .camion-icono {
-            background: #0f172a;
-            color: white;
-            border-radius: 50%;
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            border: 3px solid white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
-        .meta-icono {
-            background: #b91c1c;
-            color: white;
-            border-radius: 50%;
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            border: 3px solid white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
+        .camion-icono { background: #0f172a; color: white; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .meta-icono { background: #b91c1c; color: white; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
 
-        .preview-ean {
-            background: linear-gradient(135deg, #f0fdfa, #dcfce7);
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px dashed #10b981;
-            margin: 10px 0;
-            text-align: center;
-        }
+        .preview-ean { background: linear-gradient(135deg, #f0fdfa, #dcfce7); padding: 15px; border-radius: 10px; border: 2px dashed #10b981; margin: 10px 0; text-align: center; }
         .preview-ean .titulo { color: #64748b; font-size: 0.8rem; margin-bottom: 5px; }
         .preview-ean .valor { font-family: 'Courier New', monospace; font-size: 1.6rem; font-weight: 700; color: #059669; letter-spacing: 3px; }
         .preview-ean .desglose { font-size: 0.7rem; color: #64748b; margin-top: 8px; }
@@ -159,60 +128,16 @@
         .des-producto { background: #fed7aa; color: #9a3412; }
         .des-verif { background: #fecaca; color: #991b1b; }
 
-        .caja-info-ruta {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: white;
-            border-radius: 12px;
-            padding: 16px 20px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-            min-width: 240px;
-            border-left: 5px solid #0f172a;
-            display: none;
-        }
+        .caja-info-ruta { position: absolute; top: 20px; right: 20px; z-index: 1000; background: white; border-radius: 12px; padding: 16px 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.3); min-width: 240px; border-left: 5px solid #0f172a; display: none; }
         .caja-info-ruta.visible { display: block; animation: slideInRight 0.4s; }
-        @keyframes slideInRight {
-            from { transform: translateX(30px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        .caja-info-ruta .titulo {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-        }
-        .caja-info-ruta .fila {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 8px 0;
-        }
+        @keyframes slideInRight { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .caja-info-ruta .titulo { font-size: 0.75rem; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .caja-info-ruta .fila { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
         .caja-info-ruta .fila .icono { font-size: 22px; }
         .caja-info-ruta .fila .dato { font-size: 1.15rem; font-weight: 700; color: #0f172a; }
         .caja-info-ruta .fila .dato small { font-size: 0.75rem; color: #64748b; font-weight: 500; display: block; }
-        .caja-info-ruta .estado-ruta {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #e2e8f0;
-            font-size: 0.75rem;
-            color: #64748b;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .spinner-ruta {
-            width: 12px;
-            height: 12px;
-            border: 2px solid #cbd5e1;
-            border-top-color: #0f172a;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
+        .caja-info-ruta .estado-ruta { margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 6px; }
+        .spinner-ruta { width: 12px; height: 12px; border: 2px solid #cbd5e1; border-top-color: #0f172a; border-radius: 50%; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         @media(max-width: 768px) {
@@ -222,20 +147,14 @@
             .mapa-full-container { height: calc(100vh - 130px); }
             .mapa-filtros-superpuestos { flex-direction: column; align-items: stretch; }
             #mapa-trazabilidad { height: 380px; }
-            .caja-info-ruta {
-                top: auto;
-                bottom: 70px;
-                right: 10px;
-                left: 10px;
-                min-width: auto;
-            }
+            .caja-info-ruta { top: auto; bottom: 70px; right: 10px; left: 10px; min-width: auto; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>📦 LogiTrace UPEC v1.5.1</h1>
+        <h1>📦 LogiTrace UPEC v1.6</h1>
         <p>Trazabilidad Logística · EAN-13 · QR · RFID · Ruta Real OSRM</p>
     </header>
 
@@ -737,14 +656,14 @@
     </div>
 
     <footer>
-        <p>LogiTrace UPEC v1.5.1 | Trazabilidad + Geolocalización + OSRM</p>
+        <p>LogiTrace UPEC v1.6 | Trazabilidad + Geolocalización + OSRM</p>
     </footer>
 
     <script>
         // =========================================================
         // CONFIGURACIÓN
         // =========================================================
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyGYcywGfa6K68CUdNF3zga_UQrVp-Mx5zi-KsMg4CEQIhBHTNboUWhg6s-GdS_u0Rbxg/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwEN0cXOUHLnPqCbQeH_EbYUhFLqHIm6ckEAp_xVgcJhj9rr_qgCJPZr_1dobST9k9RVg/exec";
         const OSRM_URL = "https://router.project-osrm.org/route/v1/driving/";
 
         // =========================================================
@@ -767,6 +686,28 @@
         let mapaTrazabilidad = null;
         let coordenadasManual = null;
         let resolverModalGPS = null;
+
+        // =========================================================
+        // HELPERS UNIVERSALES (compatibilidad con headers en cualquier case)
+        // =========================================================
+        function getVal(obj, ...keys) {
+            if (!obj) return '';
+            for (const k of keys) {
+                if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
+            }
+            // Intentar case-insensitive
+            const objKeys = Object.keys(obj);
+            for (const k of keys) {
+                const found = objKeys.find(o => o.toLowerCase() === k.toLowerCase());
+                if (found && obj[found] !== undefined && obj[found] !== '') return obj[found];
+            }
+            return '';
+        }
+
+        function parseFloatSafe(v) {
+            if (v === null || v === undefined || v === '') return NaN;
+            return parseFloat(String(v).replace(',', '.'));
+        }
 
         // =========================================================
         // EAN-13
@@ -851,9 +792,6 @@
             if (id === "productos") actualizarPreviewEAN();
         }
 
-        // =========================================================
-        // TOGGLE MODO CAPTURA
-        // =========================================================
         function toggleModoCaptura() {
             const modo = document.getElementById("modoCaptura").value;
             const contenedor = document.getElementById("contenedorUbicacionCaptura");
@@ -880,7 +818,7 @@
         }
 
         // =========================================================
-        // CARGAR DATOS (con migración EAN automática)
+        // CARGAR DATOS CON NORMALIZACIÓN DE CAMPOS
         // =========================================================
         async function cargarDatosDesdeSheets() {
             try {
@@ -890,20 +828,75 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    // Migración automática: si un producto no tiene EAN, se genera
+                    // Normalizar productos
                     productos = (data.productos || []).map(p => {
-                        if (!p.ean13 || p.ean13 === '' || p.ean13 === 'undefined') {
-                            const producto5 = codigoA5Digitos(p.codigo || "00000");
-                            p.ean13 = construirEAN13("786", "1234", producto5);
-                            p.codigoGenerado = p.ean13;
-                            setTimeout(() => enviarProductoGoogleSheets(p), 50);
+                        const norm = {
+                            id: getVal(p, 'id'),
+                            codigo: getVal(p, 'codigo'),
+                            ean13: getVal(p, 'ean13'),
+                            nombre: getVal(p, 'nombre'),
+                            categoria: getVal(p, 'categoria'),
+                            lote: getVal(p, 'lote'),
+                            cantidad: Number(getVal(p, 'cantidad')) || 0,
+                            vencimiento: getVal(p, 'vencimiento'),
+                            origen: getVal(p, 'origen'),
+                            destino: getVal(p, 'destino'),
+                            ubicacion: getVal(p, 'ubicacion'),
+                            tipoIdentificacion: getVal(p, 'tipoIdentificacion'),
+                            codigoGenerado: getVal(p, 'codigoGenerado'),
+                            rfid: getVal(p, 'rfid'),
+                            ultimaActualizacion: getVal(p, 'ultimaActualizacion')
+                        };
+                        // Migración EAN automática
+                        if (!norm.ean13) {
+                            const producto5 = codigoA5Digitos(norm.codigo || "00000");
+                            norm.ean13 = construirEAN13("786", "1234", producto5);
+                            norm.codigoGenerado = norm.ean13;
+                            setTimeout(() => enviarProductoGoogleSheets(norm), 50);
                         }
-                        return p;
+                        return norm;
                     });
-                    eventos = data.eventos || [];
-                    if (data.ubicaciones) ubicaciones = data.ubicaciones;
+
+                    // Normalizar eventos
+                    eventos = (data.eventos || []).map(e => ({
+                        idEvento: getVal(e, 'idEvento', 'idevento'),
+                        fechaHora: getVal(e, 'fechaHora', 'fechahora'),
+                        idProducto: getVal(e, 'idProducto', 'idproducto'),
+                        producto: getVal(e, 'producto'),
+                        tipoIdentificacion: getVal(e, 'tipoIdentificacion', 'tipoidentificacion'),
+                        codigoLeido: getVal(e, 'codigoLeido', 'codigoleido'),
+                        evento: getVal(e, 'evento'),
+                        ubicacion: getVal(e, 'ubicacion'),
+                        actor: getVal(e, 'actor'),
+                        observacion: getVal(e, 'observacion'),
+                        estado: getVal(e, 'estado'),
+                        id_ubicacion_declarada: getVal(e, 'id_ubicacion_declarada'),
+                        lat_capturada: parseFloatSafe(getVal(e, 'lat_capturada')),
+                        lon_capturada: parseFloatSafe(getVal(e, 'lon_capturada')),
+                        precision_m: parseFloatSafe(getVal(e, 'precision_m')),
+                        fuente_ubicacion: getVal(e, 'fuente_ubicacion'),
+                        distancia_declarada_m: parseFloatSafe(getVal(e, 'distancia_declarada_m')),
+                        validacion_geo: getVal(e, 'validacion_geo')
+                    }));
+
+                    // Normalizar ubicaciones
+                    if (data.ubicaciones) {
+                        ubicaciones = data.ubicaciones.map(u => ({
+                            id_ubicacion: getVal(u, 'id_ubicacion', 'id', 'ID'),
+                            nombre: getVal(u, 'nombre', 'Nombre'),
+                            tipo: getVal(u, 'tipo', 'Tipo'),
+                            direccion: getVal(u, 'direccion', 'Direccion', 'Dirección'),
+                            lat: getVal(u, 'lat', 'Lat', 'latitud'),
+                            lon: getVal(u, 'lon', 'Lon', 'longitud', 'lng'),
+                            radio_geocerca_m: getVal(u, 'radio_geocerca_m', 'radio', 'Radio'),
+                            padre_id: getVal(u, 'padre_id', 'padre'),
+                            activo: getVal(u, 'activo', 'Activo')
+                        }));
+                    }
+
                     actualizarEstadisticas();
                     actualizarSelectores();
+                    actualizarSelectoresUbicacion();
                     actualizarInventario();
                     mostrarEventos();
                     actualizarDashboard();
@@ -935,8 +928,12 @@
             const empresa = document.getElementById("empresaEAN").value.trim();
             const producto5Input = document.getElementById("productoEAN").value.trim();
 
-            if (!codigo || !nombre || !categoria || !lote || !cantidad || !origen || !destino || !ubicacion) {
+            if (!codigo || !nombre || !categoria || !lote || !cantidad) {
                 mostrarMensajeProducto("Complete todos los campos obligatorios.", false);
+                return;
+            }
+            if (!origen || !destino || !ubicacion) {
+                mostrarMensajeProducto("Seleccione Origen, Destino y Ubicación actual.", false);
                 return;
             }
             if (!/^\d{3}$/.test(pais) || !/^\d{4}$/.test(empresa)) {
@@ -1049,7 +1046,7 @@
         }
 
         // =========================================================
-        // LECTOR (con validación de duplicados)
+        // LECTOR
         // =========================================================
         function iniciarScanner() {
             if (scanner) { alert("La cámara ya está activa."); return; }
@@ -1085,7 +1082,6 @@
 
             const codigoBusqueda = datosQR && datosQR.ean ? datosQR.ean : codigo;
 
-            // Buscar TODAS las coincidencias
             const productosEncontrados = productos.filter(p =>
                 p.ean13 === codigoBusqueda ||
                 p.codigo === codigoBusqueda ||
@@ -1100,15 +1096,13 @@
                     : "⚠️ Dígito verificador EAN-13 INVÁLIDO";
             }
 
-            // Múltiples coincidencias (ambiguo)
             if (productosEncontrados.length > 1) {
                 productoLeido = null;
                 document.getElementById("resultadoLectura").className = "resultado error";
                 document.getElementById("resultadoLectura").innerHTML =
                     "<strong>⚠️ Código ambiguo</strong><br>" +
-                    "Encontrados " + productosEncontrados.length + " productos con el mismo código:<br>" +
-                    productosEncontrados.map(p => `· ${p.nombre} (${p.codigo})`).join("<br>") +
-                    "<br><small>Corrige duplicados en la hoja Productos.</small>";
+                    "Encontrados " + productosEncontrados.length + " productos:<br>" +
+                    productosEncontrados.map(p => `· ${p.nombre} (${p.codigo})`).join("<br>");
                 return;
             }
 
@@ -1157,7 +1151,7 @@
         }
 
         // =========================================================
-        // REGISTRAR EVENTO CON MODO DE CAPTURA
+        // REGISTRAR EVENTO
         // =========================================================
         async function registrarEvento() {
             if (!productoLeido) { alert("Primero lea un código o detecte RFID."); return; }
@@ -1188,8 +1182,8 @@
                     document.getElementById("infoGPS").style.display = "none";
                     return;
                 }
-                lat = parseFloat(String(ub.lat).replace(",", "."));
-                lon = parseFloat(String(ub.lon).replace(",", "."));
+                lat = parseFloatSafe(ub.lat);
+                lon = parseFloatSafe(ub.lon);
                 precision = 10;
                 fuente = "MANUAL_UBICACION";
                 document.getElementById("estadoGPS").textContent =
@@ -1323,8 +1317,8 @@
                         }).addTo(mapaModal);
 
                         ubicaciones.forEach(u => {
-                            const lat = parseFloat(String(u.lat).replace(",", "."));
-                            const lon = parseFloat(String(u.lon).replace(",", "."));
+                            const lat = parseFloatSafe(u.lat);
+                            const lon = parseFloatSafe(u.lon);
                             if (isNaN(lat) || isNaN(lon)) return;
                             L.circleMarker([lat, lon], {
                                 radius: 8,
@@ -1393,7 +1387,17 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    ubicaciones = data.ubicaciones || [];
+                    ubicaciones = (data.ubicaciones || []).map(u => ({
+                        id_ubicacion: getVal(u, 'id_ubicacion', 'id', 'ID'),
+                        nombre: getVal(u, 'nombre', 'Nombre'),
+                        tipo: getVal(u, 'tipo', 'Tipo'),
+                        direccion: getVal(u, 'direccion', 'Direccion', 'Dirección'),
+                        lat: getVal(u, 'lat', 'Lat', 'latitud'),
+                        lon: getVal(u, 'lon', 'Lon', 'longitud', 'lng'),
+                        radio_geocerca_m: getVal(u, 'radio_geocerca_m', 'radio', 'Radio'),
+                        padre_id: getVal(u, 'padre_id', 'padre'),
+                        activo: getVal(u, 'activo', 'Activo')
+                    }));
                     cargarTablaUbicaciones();
                     actualizarSelectoresUbicacion();
                     mostrarMensajeUbicacion("✅ " + ubicaciones.length + " ubicaciones cargadas.", true);
@@ -1488,12 +1492,12 @@
             tabla.innerHTML = "";
             ubicaciones.forEach(u => {
                 const fila = document.createElement("tr");
-                const latNum = parseFloat(String(u.lat).replace(",", "."));
-                const lonNum = parseFloat(String(u.lon).replace(",", "."));
+                const latNum = parseFloatSafe(u.lat);
+                const lonNum = parseFloatSafe(u.lon);
                 fila.innerHTML = `
-                    <td>${u.id_ubicacion}</td>
-                    <td>${u.nombre}</td>
-                    <td>${u.tipo}</td>
+                    <td>${u.id_ubicacion || '?'}</td>
+                    <td>${u.nombre || '?'}</td>
+                    <td>${u.tipo || '?'}</td>
                     <td>${!isNaN(latNum) ? latNum.toFixed(5) : "?"}, ${!isNaN(lonNum) ? lonNum.toFixed(5) : "?"}</td>
                     <td>${u.radio_geocerca_m} m</td>
                     <td>
@@ -1513,15 +1517,15 @@
             document.getElementById("nombreUbicacion").value = u.nombre;
             document.getElementById("tipoUbicacion").value = u.tipo;
             document.getElementById("direccionUbicacion").value = u.direccion || "";
-            document.getElementById("latUbicacion").value = String(u.lat).replace(",", ".");
-            document.getElementById("lonUbicacion").value = String(u.lon).replace(",", ".");
+            document.getElementById("latUbicacion").value = u.lat;
+            document.getElementById("lonUbicacion").value = u.lon;
             document.getElementById("radioUbicacion").value = u.radio_geocerca_m;
             document.getElementById("padreUbicacion").value = u.padre_id || "";
             document.getElementById("idUbicacion").disabled = true;
 
             if (miniMapaUbicacion) {
-                const lat = parseFloat(String(u.lat).replace(",", "."));
-                const lon = parseFloat(String(u.lon).replace(",", "."));
+                const lat = parseFloatSafe(u.lat);
+                const lon = parseFloatSafe(u.lon);
                 miniMapaUbicacion.setView([lat, lon], 15);
                 if (marcadorMiniMapa) miniMapaUbicacion.removeLayer(marcadorMiniMapa);
                 marcadorMiniMapa = L.marker([lat, lon]).addTo(miniMapaUbicacion);
@@ -1567,7 +1571,7 @@
                 ubicaciones.forEach(u => {
                     const option = document.createElement("option");
                     option.value = u.id_ubicacion;
-                    option.textContent = u.nombre + " (" + u.tipo + ")";
+                    option.textContent = (u.nombre || '?') + " (" + (u.tipo || '?') + ")";
                     if (u.id_ubicacion === valorActual) option.selected = true;
                     select.appendChild(option);
                 });
@@ -1611,12 +1615,11 @@
 
             const grupo = L.layerGroup().addTo(mapaFull);
 
-            // Ubicaciones
             if (filtro === "todos" || filtro === "ubicaciones") {
                 if (ubicaciones.length === 0) await cargarUbicaciones();
                 ubicaciones.forEach(u => {
-                    const lat = parseFloat(String(u.lat).replace(",", "."));
-                    const lon = parseFloat(String(u.lon).replace(",", "."));
+                    const lat = parseFloatSafe(u.lat);
+                    const lon = parseFloatSafe(u.lon);
                     if (isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) return;
                     const color = u.tipo === "Bodega" ? "#1e40af" :
                                   u.tipo === "Tienda" ? "#047857" :
@@ -1640,7 +1643,6 @@
                 });
             }
 
-            // Eventos
             if (filtro === "todos" || filtro === "eventos" || filtro === "producto") {
                 let eventosFiltrados = eventos;
 
@@ -1654,8 +1656,8 @@
 
                 const coordsValidas = [];
                 eventosFiltrados.forEach(e => {
-                    const lat = parseFloat(e.lat_capturada) || parseFloat(e.lat) || 0;
-                    const lon = parseFloat(e.lon_capturada) || parseFloat(e.lon) || 0;
+                    const lat = parseFloat(e.lat_capturada) || 0;
+                    const lon = parseFloat(e.lon_capturada) || 0;
                     if (!lat || !lon || isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) return;
                     coordsValidas.push([lat, lon]);
                 });
@@ -1666,8 +1668,8 @@
 
                 let contadorProducto = 0;
                 eventosFiltrados.forEach((e) => {
-                    const lat = parseFloat(e.lat_capturada) || parseFloat(e.lat) || 0;
-                    const lon = parseFloat(e.lon_capturada) || parseFloat(e.lon) || 0;
+                    const lat = parseFloat(e.lat_capturada) || 0;
+                    const lon = parseFloat(e.lon_capturada) || 0;
                     if (!lat || !lon || isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) return;
 
                     const validacion = e.validacion_geo || "SIN_GPS";
@@ -1725,14 +1727,35 @@
                     body: JSON.stringify({ accion: "consultar" })
                 });
                 const data = await response.json();
-                if (data.success && data.eventos) eventos = data.eventos;
+                if (data.success && data.eventos) {
+                    eventos = data.eventos.map(e => ({
+                        idEvento: getVal(e, 'idEvento'),
+                        fechaHora: getVal(e, 'fechaHora'),
+                        idProducto: getVal(e, 'idProducto'),
+                        producto: getVal(e, 'producto'),
+                        tipoIdentificacion: getVal(e, 'tipoIdentificacion'),
+                        codigoLeido: getVal(e, 'codigoLeido'),
+                        evento: getVal(e, 'evento'),
+                        ubicacion: getVal(e, 'ubicacion'),
+                        actor: getVal(e, 'actor'),
+                        observacion: getVal(e, 'observacion'),
+                        estado: getVal(e, 'estado'),
+                        id_ubicacion_declarada: getVal(e, 'id_ubicacion_declarada'),
+                        lat_capturada: parseFloatSafe(getVal(e, 'lat_capturada')),
+                        lon_capturada: parseFloatSafe(getVal(e, 'lon_capturada')),
+                        precision_m: parseFloatSafe(getVal(e, 'precision_m')),
+                        fuente_ubicacion: getVal(e, 'fuente_ubicacion'),
+                        distancia_declarada_m: parseFloatSafe(getVal(e, 'distancia_declarada_m')),
+                        validacion_geo: getVal(e, 'validacion_geo')
+                    }));
+                }
             } catch (e) { console.error(e); }
             actualizarFiltroProductoMapa();
             await actualizarMapaFull();
         }
 
         // =========================================================
-        // OSRM (con timeout)
+        // OSRM
         // =========================================================
         async function calcularRutaOSRM(coords) {
             if (!coords || coords.length < 2) return null;
@@ -2057,8 +2080,8 @@
                 if (data.success) {
                     const eventosList = data.eventos || [];
                     const total = eventosList.length;
-                    const ok = eventosList.filter(e => e.validacion_geo === "OK").length;
-                    const fuera = eventosList.filter(e => e.validacion_geo === "FUERA_GEOCERCA").length;
+                    const ok = eventosList.filter(e => getVal(e, 'validacion_geo') === "OK").length;
+                    const fuera = eventosList.filter(e => getVal(e, 'validacion_geo') === "FUERA_GEOCERCA").length;
                     document.getElementById("totalEventosDashboard").textContent = total;
                     document.getElementById("eventosOK").textContent = ok;
                     document.getElementById("eventosFuera").textContent = fuera;
@@ -2088,7 +2111,7 @@
                 const fila = document.createElement("tr");
                 fila.innerHTML = `<td>${p.codigo}</td><td style="font-family:monospace;">${p.ean13 || '-'}</td>
                     <td>${p.nombre}</td><td>${p.categoria}</td>
-                    <td>${p.lote}</td><td>${Number(p.cantidad) || 0}</td><td>${p.ubicacion}</td>`;
+                    <td>${p.lote}</td><td>${Number(p.cantidad) || 0}</td><td>${p.ubicacion || '-'}</td>`;
                 tabla.appendChild(fila);
             });
             mostrarResumenCategorias();
@@ -2131,7 +2154,7 @@
                     <td>${e.producto}</td>
                     <td>${e.tipoIdentificacion}</td>
                     <td>${e.evento}</td>
-                    <td>${e.ubicacion}</td>
+                    <td>${e.ubicacion || '-'}</td>
                     <td>${e.actor}</td>
                     <td><span class="estado-badge ${badge}">${validacion}</span></td>
                 `;
@@ -2200,10 +2223,9 @@
         // INIT
         // =========================================================
         async function init() {
-            console.log("🚀 Inicializando LogiTrace v1.5.1...");
+            console.log("🚀 Inicializando LogiTrace v1.6...");
             try {
                 await cargarUbicaciones();
-                actualizarSelectoresUbicacion();
                 await cargarDatosDesdeSheets();
 
                 actualizarSelectores();
@@ -2220,7 +2242,7 @@
                     if (el) el.addEventListener("input", actualizarPreviewEAN);
                 });
 
-                console.log("✅ App v1.5.1 lista");
+                console.log("✅ App v1.6 lista");
             } catch (error) {
                 console.error("❌ Error init:", error);
             }
