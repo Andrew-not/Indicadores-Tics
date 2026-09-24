@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiTrace UPEC v1.3</title>
+    <title>LogiTrace UPEC v1.4</title>
 
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-ant-path@1.3.0/dist/leaflet-ant-path.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -103,7 +105,7 @@
 
         .mini-mapa-ubicacion { width: 100%; height: 260px; border-radius: 10px; margin-top: 8px; border: 2px solid #e2e8f0; }
         .coord-chip { display: inline-block; background: #f0fdfa; color: #065f46; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin: 4px 4px 0 0; border: 1px solid #a7f3d0; }
-        #mapa-trazabilidad { width: 100%; height: 450px; border-radius: 12px; margin-top: 15px; }
+        #mapa-trazabilidad { width: 100%; height: 500px; border-radius: 12px; margin-top: 15px; }
         .numero-marcador { background: transparent; border: none; }
         .traza-item { background: #f8fafc; border-left: 4px solid #059669; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; }
         .traza-item b { color: #059669; }
@@ -144,21 +146,98 @@
         .des-producto { background: #fed7aa; color: #9a3412; }
         .des-verif { background: #fecaca; color: #991b1b; }
 
+        /* Caja flotante estilo Google Maps con info de la ruta */
+        .caja-info-ruta {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            min-width: 240px;
+            border-left: 5px solid #3b82f6;
+            display: none;
+        }
+        .caja-info-ruta.visible { display: block; animation: slideInRight 0.4s; }
+        @keyframes slideInRight {
+            from { transform: translateX(30px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .caja-info-ruta .titulo {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        .caja-info-ruta .fila {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+        }
+        .caja-info-ruta .fila .icono {
+            font-size: 22px;
+        }
+        .caja-info-ruta .fila .dato {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .caja-info-ruta .fila .dato small {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 500;
+            display: block;
+        }
+        .caja-info-ruta .estado-ruta {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.75rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .spinner-ruta {
+            width: 12px;
+            height: 12px;
+            border: 2px solid #cbd5e1;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         @media(max-width: 768px) {
             nav button { flex: 1 0 45%; font-size: 0.8rem; padding: 6px 10px; }
             .grid { grid-template-columns: 1fr; }
             .estadisticas { grid-template-columns: 1fr 1fr; }
             .mapa-full-container { height: calc(100vh - 130px); }
             .mapa-filtros-superpuestos { flex-direction: column; align-items: stretch; }
-            #mapa-trazabilidad { height: 350px; }
+            #mapa-trazabilidad { height: 380px; }
+            .caja-info-ruta {
+                top: auto;
+                bottom: 70px;
+                right: 10px;
+                left: 10px;
+                min-width: auto;
+            }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>📦 LogiTrace UPEC v1.3</h1>
-        <p>Trazabilidad Logística con EAN-13, QR, RFID y Geolocalización</p>
+        <h1>📦 LogiTrace UPEC v1.4</h1>
+        <p>Trazabilidad Logística con Ruta Real (OSRM)</p>
     </header>
 
     <nav>
@@ -245,7 +324,7 @@
 
                 <h3 style="margin-top:20px; color:#64748b; font-size:1rem;">Estructura EAN-13</h3>
                 <p style="color:#64748b; font-size:0.85rem; margin-bottom:10px;">
-                    Prefijo GS1 (país + empresa) y código interno del producto. El dígito verificador se calcula automáticamente.
+                    Prefijo GS1 (país + empresa) y código interno. El verificador se calcula automáticamente.
                 </p>
                 <div class="grid">
                     <div>
@@ -374,7 +453,6 @@
                 <div id="infoGPS" style="margin-top:10px; padding:10px; background:#f1f5f9; border-radius:8px; display:none;">
                     📍 GPS: <span id="estadoGPS">Esperando...</span>
                 </div>
-                <div id="mensajeEvento" class="mensaje"></div>
             </div>
         </section>
 
@@ -393,7 +471,6 @@
         <section id="ubicaciones" class="seccion">
             <div class="card">
                 <h2>📍 Gestión de ubicaciones</h2>
-                <p style="color:#64748b; margin-bottom:15px;">Capture con "Mi posición" o haciendo clic en el mapa.</p>
                 <div class="grid">
                     <div>
                         <label>ID *</label>
@@ -509,13 +586,34 @@
                     </table>
                 </div>
             </div>
-            <div class="card">
-                <h2>🗺️ Trayectoria del producto (ruta animada)</h2>
+            <div class="card" style="position:relative;">
+                <h2>🗺️ Trayectoria con ruta real (OSRM)</h2>
                 <label>Seleccionar producto</label>
                 <select id="selectorTrazabilidad" onchange="dibujarTrayectoria()">
                     <option value="">-- Selecciona un producto --</option>
                 </select>
-                <div id="mapa-trazabilidad"></div>
+                <div style="position:relative;">
+                    <div id="mapa-trazabilidad"></div>
+                    <div id="caja-info-ruta" class="caja-info-ruta">
+                        <div class="titulo">📊 Información de ruta</div>
+                        <div class="fila">
+                            <span class="icono">🛣️</span>
+                            <div class="dato" id="info-distancia">— km</div>
+                        </div>
+                        <div class="fila">
+                            <span class="icono">⏱️</span>
+                            <div class="dato" id="info-duracion">— min</div>
+                        </div>
+                        <div class="fila">
+                            <span class="icono">📍</span>
+                            <div class="dato" id="info-paradas">— eventos</div>
+                        </div>
+                        <div class="estado-ruta" id="estado-ruta">
+                            <span class="spinner-ruta"></span>
+                            <span>Calculando ruta por calles...</span>
+                        </div>
+                    </div>
+                </div>
                 <div id="resumen-trayectoria" style="margin-top:12px;"></div>
             </div>
         </section>
@@ -532,6 +630,13 @@
                             <option value="todos">🌐 Todos</option>
                             <option value="ubicaciones">📍 Ubicaciones</option>
                             <option value="eventos">📌 Eventos</option>
+                            <option value="producto">🚚 Por producto</option>
+                        </select>
+                    </div>
+                    <div id="contenedorFiltroProducto" style="display:none;">
+                        <label>📦 Producto</label>
+                        <select id="filtroProductoMapa" onchange="actualizarMapaFull()">
+                            <option value="">Todos los productos</option>
                         </select>
                     </div>
                     <div>
@@ -610,14 +715,15 @@
     </div>
 
     <footer>
-        <p>LogiTrace UPEC v1.3 | Trazabilidad logística con EAN-13, QR, RFID y Geolocalización</p>
+        <p>LogiTrace UPEC v1.4 | Ruta real con OSRM + OpenStreetMap</p>
     </footer>
 
     <script>
         // =========================================================
-        // CONFIGURACIÓN - ⚠️ REEMPLAZA CON TU URL
+        // CONFIGURACIÓN
         // =========================================================
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxaW_PjAMiR42Lckhca_HU3Wjc_G5eMiHYnIlEwjncz7SrrGtLE4HadnlGBnDP2VXk2-A/exec";
+        const OSRM_URL = "https://router.project-osrm.org/route/v1/driving/";
 
         // =========================================================
         // VARIABLES GLOBALES
@@ -641,7 +747,7 @@
         let resolverModalGPS = null;
 
         // =========================================================
-        // EAN-13: CÁLCULO DEL DÍGITO VERIFICADOR
+        // EAN-13
         // =========================================================
         function calcularVerificadorEAN13(base12) {
             if (!/^\d{12}$/.test(base12)) return null;
@@ -698,12 +804,6 @@
                 `;
             } else {
                 preview.textContent = "---------";
-                document.getElementById("desgloseEAN").innerHTML = `
-                    <span class="des-pais">País</span>
-                    <span class="des-empresa">Empresa</span>
-                    <span class="des-producto">Producto</span>
-                    <span class="des-verif">Verif.</span>
-                `;
             }
         }
 
@@ -768,6 +868,7 @@
                     mostrarEventos();
                     actualizarDashboard();
                     actualizarSelectorTrazabilidad();
+                    actualizarFiltroProductoMapa();
                     return true;
                 }
                 return false;
@@ -798,12 +899,8 @@
                 mostrarMensajeProducto("Complete todos los campos obligatorios.", false);
                 return;
             }
-            if (!/^\d{3}$/.test(pais)) {
-                mostrarMensajeProducto("El país GS1 debe tener exactamente 3 dígitos.", false);
-                return;
-            }
-            if (!/^\d{4}$/.test(empresa)) {
-                mostrarMensajeProducto("El código de empresa debe tener exactamente 4 dígitos.", false);
+            if (!/^\d{3}$/.test(pais) || !/^\d{4}$/.test(empresa)) {
+                mostrarMensajeProducto("País (3 dígitos) y empresa (4 dígitos) son obligatorios.", false);
                 return;
             }
             if (productos.some(p => p.codigo === codigo)) {
@@ -854,6 +951,7 @@
             actualizarEstadisticas();
             actualizarSelectores();
             actualizarSelectorTrazabilidad();
+            actualizarFiltroProductoMapa();
             actualizarPreviewEAN();
             enviarProductoGoogleSheets(nuevoProducto);
         }
@@ -877,7 +975,6 @@
             const ean13 = producto.ean13 || construirEAN13("786", "1234", codigoA5Digitos(producto.codigo));
             producto.ean13 = ean13;
 
-            // EAN-13
             JsBarcode("#barcode", ean13, {
                 format: "EAN13",
                 displayValue: true,
@@ -888,7 +985,6 @@
             });
             document.getElementById("valorBarcode").textContent = ean13;
 
-            // QR con JSON
             const qrData = JSON.stringify({
                 ean: ean13,
                 lote: producto.lote,
@@ -902,7 +998,6 @@
             });
             document.getElementById("valorQR").textContent = "EAN: " + ean13 + " | Lote: " + producto.lote;
 
-            // RFID
             const rfid = "UPEC-" + ean13 + "-" + producto.lote + "-" +
                 String(Math.floor(Math.random() * 9999)).padStart(4, "0");
             producto.rfid = rfid;
@@ -914,7 +1009,7 @@
         }
 
         // =========================================================
-        // LECTOR (reconoce EAN-13, código interno, RFID y JSON)
+        // LECTOR
         // =========================================================
         function iniciarScanner() {
             if (scanner) { alert("La cámara ya está activa."); return; }
@@ -946,7 +1041,7 @@
             let datosQR = null;
             try {
                 if (codigo.startsWith("{")) datosQR = JSON.parse(codigo);
-            } catch (e) { /* no JSON */ }
+            } catch (e) { }
 
             const codigoBusqueda = datosQR && datosQR.ean ? datosQR.ean : codigo;
 
@@ -957,7 +1052,6 @@
             );
 
             const fecha = new Date().toLocaleString();
-
             let mensajeEAN = "";
             if (/^\d{13}$/.test(codigoBusqueda)) {
                 mensajeEAN = validarEAN13(codigoBusqueda)
@@ -1009,7 +1103,7 @@
         }
 
         // =========================================================
-        // REGISTRAR EVENTO CON GPS
+        // REGISTRAR EVENTO
         // =========================================================
         async function registrarEvento() {
             if (!productoLeido) { alert("Primero lea un código o detecte RFID."); return; }
@@ -1366,7 +1460,7 @@
         }
 
         // =========================================================
-        // MAPA PRINCIPAL
+        // MAPA GENERAL
         // =========================================================
         function inicializarMapaFull() {
             if (mapaFull) { mapaFull.invalidateSize(); return; }
@@ -1376,6 +1470,18 @@
             }).addTo(mapaFull);
         }
 
+        function actualizarFiltroProductoMapa() {
+            const sel = document.getElementById("filtroProductoMapa");
+            if (!sel) return;
+            sel.innerHTML = '<option value="">Todos los productos</option>';
+            productos.forEach(p => {
+                const op = document.createElement("option");
+                op.value = p.id;
+                op.textContent = p.nombre + " (" + (p.ean13 || p.codigo) + ")";
+                sel.appendChild(op);
+            });
+        }
+
         async function actualizarMapaFull() {
             if (!mapaFull) { inicializarMapaFull(); await new Promise(r => setTimeout(r, 300)); }
             marcadoresMapaFull.forEach(m => mapaFull.removeLayer(m));
@@ -1383,8 +1489,15 @@
 
             const filtro = document.getElementById("filtroMapa").value;
             const filtroValidacion = document.getElementById("filtroValidacionFull").value;
+            const filtroProducto = document.getElementById("filtroProductoMapa").value;
+
+            // Mostrar/ocultar el filtro de producto
+            document.getElementById("contenedorFiltroProducto").style.display =
+                filtro === "producto" ? "block" : "none";
+
             const grupo = L.layerGroup().addTo(mapaFull);
 
+            // Ubicaciones
             if (filtro === "todos" || filtro === "ubicaciones") {
                 if (ubicaciones.length === 0) await cargarUbicaciones();
                 ubicaciones.forEach(u => {
@@ -1411,22 +1524,68 @@
                 });
             }
 
-            if (filtro === "todos" || filtro === "eventos") {
-                eventos.forEach(e => {
+            // Eventos
+            if (filtro === "todos" || filtro === "eventos" || filtro === "producto") {
+                let eventosFiltrados = eventos;
+
+                // Filtrar por producto
+                if (filtro === "producto" && filtroProducto) {
+                    eventosFiltrados = eventos.filter(e => String(e.idProducto) === String(filtroProducto));
+                }
+
+                // Ordenar por fecha
+                eventosFiltrados = eventosFiltrados.slice().sort((a, b) =>
+                    new Date(a.fechaHora) - new Date(b.fechaHora)
+                );
+
+                // Si es por producto, dibujar también la línea conectando
+                const coordsValidas = [];
+                eventosFiltrados.forEach(e => {
                     const lat = parseFloat(e.lat_capturada) || parseFloat(e.lat) || 0;
                     const lon = parseFloat(e.lon_capturada) || parseFloat(e.lon) || 0;
                     if (!lat || !lon || isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) return;
+                    coordsValidas.push([lat, lon]);
+                });
+
+                if (filtro === "producto" && coordsValidas.length >= 2) {
+                    // Ruta real entre puntos con OSRM (o fallback)
+                    await dibujarRutaOSRM(mapaFull, coordsValidas, grupo, marcadoresMapaFull);
+                }
+
+                eventosFiltrados.forEach((e, index) => {
+                    const lat = parseFloat(e.lat_capturada) || parseFloat(e.lat) || 0;
+                    const lon = parseFloat(e.lon_capturada) || parseFloat(e.lon) || 0;
+                    if (!lat || !lon || isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) return;
+
                     const validacion = e.validacion_geo || "SIN_GPS";
                     if (filtroValidacion !== "todos" && validacion !== filtroValidacion) return;
+
                     const color = validacion === "OK" ? "#10b981" :
                                   validacion === "FUERA_GEOCERCA" ? "#ef4444" :
                                   validacion === "BAJA_PRECISION" ? "#f59e0b" : "#94a3b8";
-                    const marker = L.circleMarker([lat, lon], {
-                        radius: 10, fillColor: color, color: 'white',
-                        weight: 2, fillOpacity: 0.9
-                    }).bindPopup(`
+
+                    // Si es por producto, numerar
+                    let icono;
+                    if (filtro === "producto") {
+                        icono = L.divIcon({
+                            className: 'numero-marcador',
+                            html: `<div style="background:${color};color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);font-size:12px;">${index + 1}</div>`,
+                            iconSize: [26, 26], iconAnchor: [13, 13]
+                        });
+                    }
+
+                    const marker = filtro === "producto"
+                        ? L.marker([lat, lon], { icon: icono })
+                        : L.circleMarker([lat, lon], {
+                            radius: 10, fillColor: color, color: 'white',
+                            weight: 2, fillOpacity: 0.9
+                        });
+
+                    marker.bindPopup(`
                         <strong>${e.producto || "Producto"}</strong><br>
                         Evento: ${e.evento || "N/A"}<br>
+                        Fecha: ${e.fechaHora || "N/A"}<br>
+                        Ubicación: ${e.ubicacion || "N/A"}<br>
                         Validación: <b>${validacion}</b><br>
                         ${e.distancia_declarada_m ? 'Distancia: ' + Math.round(e.distancia_declarada_m) + 'm<br>' : ''}
                         ${e.precision_m ? 'Precisión: ' + Math.round(e.precision_m) + 'm' : ''}
@@ -1454,11 +1613,122 @@
                 const data = await response.json();
                 if (data.success && data.eventos) eventos = data.eventos;
             } catch (e) { console.error(e); }
+            actualizarFiltroProductoMapa();
             await actualizarMapaFull();
         }
 
         // =========================================================
-        // TRAYECTORIA CON RUTA ANIMADA
+        // OSRM - RUTA REAL POR CALLES
+        // =========================================================
+        async function calcularRutaOSRM(coords) {
+            if (!coords || coords.length < 2) return null;
+
+            // OSRM espera formato lon,lat;lon,lat;...
+            const waypoints = coords.map(c => `${c[1]},${c[0]}`).join(";");
+            const url = OSRM_URL + waypoints + "?overview=full&geometries=geojson&steps=false";
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                const data = await response.json();
+
+                if (data.code !== "Ok" || !data.routes || !data.routes[0]) {
+                    throw new Error("OSRM sin ruta");
+                }
+
+                const route = data.routes[0];
+                // Convertir [lon, lat] a [lat, lon] para Leaflet
+                const latlngs = route.geometry.coordinates.map(c => [c[1], c[0]]);
+
+                return {
+                    latlngs: latlngs,
+                    distance: route.distance, // metros
+                    duration: route.duration  // segundos
+                };
+            } catch (err) {
+                console.warn("OSRM error:", err);
+                return null;
+            }
+        }
+
+        // Dibuja una ruta real usando OSRM (o fallback)
+        async function dibujarRutaOSRM(mapa, coords, grupo, arrMarcadores) {
+            const ruta = await calcularRutaOSRM(coords);
+
+            if (ruta) {
+                // Ruta real encontrada
+                const linea = L.polyline(ruta.latlngs, {
+                    color: "#3b82f6",
+                    weight: 6,
+                    opacity: 0.75,
+                    lineJoin: 'round',
+                    lineCap: 'round'
+                });
+                grupo.addLayer(linea);
+                arrMarcadores.push(linea);
+
+                // Borde blanco (efecto Google Maps)
+                const borde = L.polyline(ruta.latlngs, {
+                    color: "white",
+                    weight: 10,
+                    opacity: 0.9,
+                    lineJoin: 'round',
+                    lineCap: 'round'
+                });
+                borde.bringToBack();
+                grupo.addLayer(borde);
+                arrMarcadores.push(borde);
+
+                return ruta;
+            } else {
+                // Fallback: línea recta
+                const fallback = L.polyline(coords, {
+                    color: "#3b82f6",
+                    weight: 5,
+                    opacity: 0.7,
+                    dashArray: '10, 8'
+                }).bindPopup('⚠️ Ruta aproximada (OSRM no disponible)');
+                grupo.addLayer(fallback);
+                arrMarcadores.push(fallback);
+
+                // Calcular distancia Haversine de fallback
+                let dist = 0;
+                for (let i = 0; i < coords.length - 1; i++) {
+                    dist += haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]);
+                }
+                return {
+                    latlngs: coords,
+                    distance: dist,
+                    duration: dist / 15000 // ~54 km/h
+                };
+            }
+        }
+
+        function haversine(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const toRad = x => x * Math.PI / 180;
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) ** 2 +
+                      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                      Math.sin(dLon / 2) ** 2;
+            return 2 * R * Math.asin(Math.sqrt(a));
+        }
+
+        function formatearDistancia(m) {
+            if (m < 1000) return Math.round(m) + " m";
+            return (m / 1000).toFixed(2) + " km";
+        }
+
+        function formatearDuracion(s) {
+            const horas = Math.floor(s / 3600);
+            const minutos = Math.round((s % 3600) / 60);
+            if (horas > 0) return horas + " h " + minutos + " min";
+            return minutos + " min";
+        }
+
+        // =========================================================
+        // TRAYECTORIA CON OSRM (HÍBRIDO)
         // =========================================================
         function actualizarSelectorTrazabilidad() {
             const sel = document.getElementById("selectorTrazabilidad");
@@ -1474,13 +1744,16 @@
             });
         }
 
-        function dibujarTrayectoria() {
+        async function dibujarTrayectoria() {
             const idProducto = document.getElementById("selectorTrazabilidad").value;
             const resumen = document.getElementById("resumen-trayectoria");
+            const cajaInfo = document.getElementById("caja-info-ruta");
+            const estadoRuta = document.getElementById("estado-ruta");
 
             if (!idProducto) {
                 if (mapaTrazabilidad) { mapaTrazabilidad.remove(); mapaTrazabilidad = null; }
                 resumen.innerHTML = "";
+                cajaInfo.classList.remove("visible");
                 return;
             }
 
@@ -1505,30 +1778,73 @@
 
             if (evs.length === 0) {
                 resumen.innerHTML = "<p style='color:#64748b;'>Este producto no tiene eventos con coordenadas.</p>";
+                cajaInfo.classList.remove("visible");
                 return;
             }
 
             const coords = evs.map(e => [parseFloat(e.lat_capturada), parseFloat(e.lon_capturada)]);
 
-            // RUTA ANIMADA
+            // Mostrar caja con estado "calculando"
+            cajaInfo.classList.add("visible");
+            estadoRuta.innerHTML = '<span class="spinner-ruta"></span><span>Calculando ruta por calles...</span>';
+            document.getElementById("info-distancia").textContent = "— km";
+            document.getElementById("info-duracion").textContent = "— min";
+            document.getElementById("info-paradas").innerHTML = coords.length + " <small>paradas</small>";
+
+            let rutaInfo = null;
+
             if (coords.length >= 2) {
-                try {
-                    const rutaAnimada = L.polyline.antPath(coords, {
-                        "color": "#0f766e",
-                        "delay": 800,
-                        "dashArray": [10, 20],
-                        "weight": 4,
-                        "opacity": 0.9,
-                        "pulseColor": "#10b981",
-                        "paused": false,
-                        "reverse": false
-                    });
-                    rutaAnimada.addTo(mapaTrazabilidad);
-                } catch (err) {
-                    // Fallback si AntPath no carga
-                    L.polyline(coords, {
-                        color: '#059669', weight: 3, dashArray: '8,6'
+                // RUTA REAL con OSRM
+                rutaInfo = await calcularRutaOSRM(coords);
+
+                if (rutaInfo) {
+                    // Borde blanco primero (queda debajo)
+                    L.polyline(rutaInfo.latlngs, {
+                        color: "white", weight: 10, opacity: 0.9,
+                        lineJoin: 'round', lineCap: 'round'
                     }).addTo(mapaTrazabilidad);
+
+                    // Línea azul encima
+                    L.polyline(rutaInfo.latlngs, {
+                        color: "#3b82f6", weight: 6, opacity: 0.85,
+                        lineJoin: 'round', lineCap: 'round'
+                    }).addTo(mapaTrazabilidad);
+
+                    // Ruta animada encima de todo (efecto ant-path sutil)
+                    try {
+                        L.polyline.antPath(rutaInfo.latlngs, {
+                            "color": "#10b981",
+                            "delay": 1200,
+                            "dashArray": [10, 30],
+                            "weight": 3,
+                            "opacity": 0.8,
+                            "pulseColor": "#34d399",
+                            "paused": false
+                        }).addTo(mapaTrazabilidad);
+                    } catch (e) { /* opcional */ }
+
+                    // Actualizar caja
+                    document.getElementById("info-distancia").innerHTML =
+                        formatearDistancia(rutaInfo.distance) + " <small>distancia</small>";
+                    document.getElementById("info-duracion").innerHTML =
+                        formatearDuracion(rutaInfo.duration) + " <small>duración</small>";
+                    estadoRuta.innerHTML = '<span style="color:#10b981;">✅</span><span>Ruta real calculada por calles</span>';
+
+                } else {
+                    // Fallback: línea recta animada
+                    try {
+                        L.polyline.antPath(coords, {
+                            "color": "#3b82f6",
+                            "delay": 800,
+                            "dashArray": [10, 20],
+                            "weight": 5,
+                            "opacity": 0.85,
+                            "pulseColor": "#10b981"
+                        }).addTo(mapaTrazabilidad);
+                    } catch (err) {
+                        L.polyline(coords, { color: '#3b82f6', weight: 4, dashArray: '10,8' }).addTo(mapaTrazabilidad);
+                    }
+                    estadoRuta.innerHTML = '<span>⚠️ OSRM no disponible · línea aproximada</span>';
                 }
             }
 
@@ -1550,12 +1866,12 @@
                         ${e.fechaHora}<br>
                         Ubicación: ${e.ubicacion}<br>
                         Validación: <b>${e.validacion_geo || 'N/D'}</b><br>
-                        ${e.distancia_declarada_m ? 'Distancia: ' + Math.round(e.distancia_declarada_m) + ' m<br>' : ''}
-                        ${e.precision_m ? 'Precisión: ' + Math.round(e.precision_m) + ' m' : ''}
+                        ${e.distancia_declarada_m ? 'Distancia declarada: ' + Math.round(e.distancia_declarada_m) + ' m<br>' : ''}
+                        ${e.precision_m ? 'Precisión GPS: ' + Math.round(e.precision_m) + ' m' : ''}
                     `).addTo(mapaTrazabilidad);
             });
 
-            // Camiones en origen y destino
+            // 🚚 Inicio y 🏁 Fin
             const camionIcono = L.divIcon({
                 className: 'camion-icono-wrapper',
                 html: `<div class="camion-icono">🚚</div>`,
@@ -1567,12 +1883,17 @@
                 .addTo(mapaTrazabilidad);
 
             if (coords.length >= 2) {
-                L.marker(coords[coords.length - 1], { icon: camionIcono, zIndexOffset: 1000 })
-                    .bindPopup(`<b>🚚 Fin de ruta</b><br>${evs[evs.length-1].evento} · ${evs[evs.length-1].fechaHora}`)
+                const metaIcono = L.divIcon({
+                    className: 'meta-icono-wrapper',
+                    html: `<div style="background:#ef4444;color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:20px;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.3);">🏁</div>`,
+                    iconSize: [36, 36], iconAnchor: [18, 18]
+                });
+                L.marker(coords[coords.length - 1], { icon: metaIcono, zIndexOffset: 1000 })
+                    .bindPopup(`<b>🏁 Fin de ruta</b><br>${evs[evs.length-1].evento} · ${evs[evs.length-1].fechaHora}`)
                     .addTo(mapaTrazabilidad);
             }
 
-            mapaTrazabilidad.fitBounds(L.latLngBounds(coords), { padding: [40, 40] });
+            mapaTrazabilidad.fitBounds(L.latLngBounds(coords), { padding: [60, 60] });
 
             resumen.innerHTML = `<h3 style="color:#059669;margin-bottom:8px;">Recorrido (${evs.length} eventos)</h3>` +
                 evs.map((e, i) => `
@@ -1656,7 +1977,7 @@
                 const fila = document.createElement("tr");
                 fila.innerHTML = `<td>${p.codigo}</td><td style="font-family:monospace;">${p.ean13 || '-'}</td>
                     <td>${p.nombre}</td><td>${p.categoria}</td>
-                    <td>${p.lote}</td><td>${p.cantidad}</td><td>${p.ubicacion}</td>`;
+                    <td>${p.lote}</td><td>${Number(p.cantidad) || 0}</td><td>${p.ubicacion}</td>`;
                 tabla.appendChild(fila);
             });
             mostrarResumenCategorias();
@@ -1670,7 +1991,7 @@
             productos.forEach(p => {
                 if (!categorias[p.categoria]) categorias[p.categoria] = { productos: 0, cantidad: 0 };
                 categorias[p.categoria].productos++;
-                categorias[p.categoria].cantidad += Number(p.cantidad || 0);
+                categorias[p.categoria].cantidad += Number(p.cantidad) || 0;
             });
             Object.keys(categorias).forEach(cat => {
                 const datos = categorias[cat];
@@ -1746,7 +2067,7 @@
 
         function actualizarEstadisticas() {
             document.getElementById("totalProductos").textContent = productos.length;
-            document.getElementById("totalCantidad").textContent = productos.reduce((t, p) => t + Number(p.cantidad || 0), 0);
+            document.getElementById("totalCantidad").textContent = productos.reduce((t, p) => t + (Number(p.cantidad) || 0), 0);
             document.getElementById("totalCategorias").textContent = new Set(productos.map(p => p.categoria)).size;
             document.getElementById("totalEventos").textContent = eventos.length;
         }
@@ -1768,7 +2089,7 @@
         // INICIALIZACIÓN
         // =========================================================
         async function init() {
-            console.log("🚀 Inicializando LogiTrace v1.3...");
+            console.log("🚀 Inicializando LogiTrace v1.4...");
             try {
                 await cargarUbicaciones();
                 actualizarSelectoresUbicacion();
@@ -1780,15 +2101,15 @@
                 mostrarEventos();
                 actualizarDashboard();
                 actualizarSelectorTrazabilidad();
+                actualizarFiltroProductoMapa();
                 actualizarPreviewEAN();
 
-                // Listeners para preview EAN en vivo
                 ["paisEAN", "empresaEAN", "productoEAN", "codigoProducto"].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.addEventListener("input", actualizarPreviewEAN);
                 });
 
-                console.log("✅ App inicializada");
+                console.log("✅ App v1.4 inicializada");
             } catch (error) {
                 console.error("❌ Error init:", error);
             }
