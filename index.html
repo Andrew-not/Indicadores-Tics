@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LogiTrace UPEC v1.5</title>
+    <title>LogiTrace UPEC v1.5.1</title>
 
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
@@ -235,7 +235,7 @@
 <body>
 
     <header>
-        <h1>📦 LogiTrace UPEC v1.5</h1>
+        <h1>📦 LogiTrace UPEC v1.5.1</h1>
         <p>Trazabilidad Logística · EAN-13 · QR · RFID · Ruta Real OSRM</p>
     </header>
 
@@ -737,14 +737,14 @@
     </div>
 
     <footer>
-        <p>LogiTrace UPEC v1.5 | Trazabilidad + Geolocalización + OSRM</p>
+        <p>LogiTrace UPEC v1.5.1 | Trazabilidad + Geolocalización + OSRM</p>
     </footer>
 
     <script>
         // =========================================================
         // CONFIGURACIÓN
         // =========================================================
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxaW_PjAMiR42Lckhca_HU3Wjc_G5eMiHYnIlEwjncz7SrrGtLE4HadnlGBnDP2VXk2-A/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyGYcywGfa6K68CUdNF3zga_UQrVp-Mx5zi-KsMg4CEQIhBHTNboUWhg6s-GdS_u0Rbxg/exec";
         const OSRM_URL = "https://router.project-osrm.org/route/v1/driving/";
 
         // =========================================================
@@ -880,7 +880,7 @@
         }
 
         // =========================================================
-        // CARGAR DATOS
+        // CARGAR DATOS (con migración EAN automática)
         // =========================================================
         async function cargarDatosDesdeSheets() {
             try {
@@ -890,7 +890,16 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    productos = data.productos || [];
+                    // Migración automática: si un producto no tiene EAN, se genera
+                    productos = (data.productos || []).map(p => {
+                        if (!p.ean13 || p.ean13 === '' || p.ean13 === 'undefined') {
+                            const producto5 = codigoA5Digitos(p.codigo || "00000");
+                            p.ean13 = construirEAN13("786", "1234", producto5);
+                            p.codigoGenerado = p.ean13;
+                            setTimeout(() => enviarProductoGoogleSheets(p), 50);
+                        }
+                        return p;
+                    });
                     eventos = data.eventos || [];
                     if (data.ubicaciones) ubicaciones = data.ubicaciones;
                     actualizarEstadisticas();
@@ -1040,7 +1049,7 @@
         }
 
         // =========================================================
-        // LECTOR
+        // LECTOR (con validación de duplicados)
         // =========================================================
         function iniciarScanner() {
             if (scanner) { alert("La cámara ya está activa."); return; }
@@ -1076,7 +1085,8 @@
 
             const codigoBusqueda = datosQR && datosQR.ean ? datosQR.ean : codigo;
 
-            const producto = productos.find(p =>
+            // Buscar TODAS las coincidencias
+            const productosEncontrados = productos.filter(p =>
                 p.ean13 === codigoBusqueda ||
                 p.codigo === codigoBusqueda ||
                 p.rfid === codigoBusqueda
@@ -1090,7 +1100,20 @@
                     : "⚠️ Dígito verificador EAN-13 INVÁLIDO";
             }
 
-            if (producto) {
+            // Múltiples coincidencias (ambiguo)
+            if (productosEncontrados.length > 1) {
+                productoLeido = null;
+                document.getElementById("resultadoLectura").className = "resultado error";
+                document.getElementById("resultadoLectura").innerHTML =
+                    "<strong>⚠️ Código ambiguo</strong><br>" +
+                    "Encontrados " + productosEncontrados.length + " productos con el mismo código:<br>" +
+                    productosEncontrados.map(p => `· ${p.nombre} (${p.codigo})`).join("<br>") +
+                    "<br><small>Corrige duplicados en la hoja Productos.</small>";
+                return;
+            }
+
+            if (productosEncontrados.length === 1) {
+                const producto = productosEncontrados[0];
                 productoLeido = producto;
                 document.getElementById("resultadoLectura").className = "resultado exito";
                 document.getElementById("resultadoLectura").innerHTML =
@@ -1152,7 +1175,6 @@
 
             let lat = null, lon = null, precision = null, fuente = "MANUAL";
 
-            // MODO 1: Ubicación preestablecida
             if (modoCaptura === "manual_ubicacion") {
                 const ubId = document.getElementById("ubicacionCaptura").value;
                 if (!ubId) {
@@ -1173,7 +1195,6 @@
                 document.getElementById("estadoGPS").textContent =
                     "📌 " + ub.nombre + " · " + lat.toFixed(6) + ", " + lon.toFixed(6) + " · precisión simulada 10 m";
             }
-            // MODO 2: Selección en mapa
             else if (modoCaptura === "manual_mapa") {
                 document.getElementById("estadoGPS").textContent = "🗺️ Esperando selección en el mapa...";
                 const manual = await abrirModalGPS();
@@ -1188,7 +1209,6 @@
                     return;
                 }
             }
-            // MODO 3: GPS real
             else {
                 if (navigator.geolocation) {
                     try {
@@ -1302,7 +1322,6 @@
                             attribution: '© OpenStreetMap'
                         }).addTo(mapaModal);
 
-                        // Dibujar ubicaciones del maestro como referencia
                         ubicaciones.forEach(u => {
                             const lat = parseFloat(String(u.lat).replace(",", "."));
                             const lon = parseFloat(String(u.lon).replace(",", "."));
@@ -1520,6 +1539,10 @@
                 const d = await r.json();
                 if (d.success) {
                     mostrarMensajeUbicacion("✅ Ubicación eliminada", true);
+                    if (marcadorMiniMapa && miniMapaUbicacion) {
+                        miniMapaUbicacion.removeLayer(marcadorMiniMapa);
+                        marcadorMiniMapa = null;
+                    }
                     cargarUbicaciones();
                 } else {
                     mostrarMensajeUbicacion("Error: " + d.message, false);
@@ -1641,13 +1664,16 @@
                     await dibujarRutaOSRM(mapaFull, coordsValidas, grupo, marcadoresMapaFull);
                 }
 
-                eventosFiltrados.forEach((e, index) => {
+                let contadorProducto = 0;
+                eventosFiltrados.forEach((e) => {
                     const lat = parseFloat(e.lat_capturada) || parseFloat(e.lat) || 0;
                     const lon = parseFloat(e.lon_capturada) || parseFloat(e.lon) || 0;
                     if (!lat || !lon || isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) return;
 
                     const validacion = e.validacion_geo || "SIN_GPS";
                     if (filtroValidacion !== "todos" && validacion !== filtroValidacion) return;
+
+                    contadorProducto++;
 
                     const color = validacion === "OK" ? "#047857" :
                                   validacion === "FUERA_GEOCERCA" ? "#b91c1c" :
@@ -1657,7 +1683,7 @@
                     if (filtro === "producto") {
                         const icono = L.divIcon({
                             className: 'numero-marcador',
-                            html: `<div style="background:${color};color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.5);font-size:12px;">${index + 1}</div>`,
+                            html: `<div style="background:${color};color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:bold;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.5);font-size:12px;">${contadorProducto}</div>`,
                             iconSize: [28, 28], iconAnchor: [14, 14]
                         });
                         marker = L.marker([lat, lon], { icon: icono });
@@ -1706,7 +1732,7 @@
         }
 
         // =========================================================
-        // OSRM
+        // OSRM (con timeout)
         // =========================================================
         async function calcularRutaOSRM(coords) {
             if (!coords || coords.length < 2) return null;
@@ -1715,7 +1741,12 @@
             const url = OSRM_URL + waypoints + "?overview=full&geometries=geojson&steps=false";
 
             try {
-                const response = await fetch(url);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+                const response = await fetch(url, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
                 if (!response.ok) throw new Error("HTTP " + response.status);
                 const data = await response.json();
 
@@ -1741,7 +1772,6 @@
             const ruta = await calcularRutaOSRM(coords);
 
             if (ruta) {
-                // Halo blanco
                 const borde = L.polyline(ruta.latlngs, {
                     color: "white", weight: 13, opacity: 1,
                     lineJoin: 'round', lineCap: 'round'
@@ -1749,7 +1779,6 @@
                 grupo.addLayer(borde);
                 arrMarcadores.push(borde);
 
-                // Línea negra principal
                 const linea = L.polyline(ruta.latlngs, {
                     color: "#0f172a", weight: 7, opacity: 0.95,
                     lineJoin: 'round', lineCap: 'round'
@@ -1757,7 +1786,6 @@
                 grupo.addLayer(linea);
                 arrMarcadores.push(linea);
 
-                // Hilo azul interno
                 const hilo = L.polyline(ruta.latlngs, {
                     color: "#3b82f6", weight: 2.5, opacity: 0.95,
                     lineJoin: 'round', lineCap: 'round'
@@ -1884,25 +1912,21 @@
                 rutaInfo = await calcularRutaOSRM(coords);
 
                 if (rutaInfo) {
-                    // Halo blanco
                     L.polyline(rutaInfo.latlngs, {
                         color: "white", weight: 13, opacity: 1,
                         lineJoin: 'round', lineCap: 'round'
                     }).addTo(mapaTrazabilidad);
 
-                    // Línea negra principal
                     L.polyline(rutaInfo.latlngs, {
                         color: "#0f172a", weight: 7, opacity: 0.95,
                         lineJoin: 'round', lineCap: 'round'
                     }).addTo(mapaTrazabilidad);
 
-                    // Hilo azul interno
                     L.polyline(rutaInfo.latlngs, {
                         color: "#3b82f6", weight: 2.5, opacity: 0.95,
                         lineJoin: 'round', lineCap: 'round'
                     }).addTo(mapaTrazabilidad);
 
-                    // AntPath verde encima (animación)
                     try {
                         L.polyline.antPath(rutaInfo.latlngs, {
                             "color": "#10b981",
@@ -1922,7 +1946,6 @@
                     estadoRuta.innerHTML = '<span style="color:#047857;">✅</span><span>Ruta real calculada por calles</span>';
 
                 } else {
-                    // Fallback
                     L.polyline(coords, {
                         color: "white", weight: 11, opacity: 1
                     }).addTo(mapaTrazabilidad);
@@ -2177,7 +2200,7 @@
         // INIT
         // =========================================================
         async function init() {
-            console.log("🚀 Inicializando LogiTrace v1.5...");
+            console.log("🚀 Inicializando LogiTrace v1.5.1...");
             try {
                 await cargarUbicaciones();
                 actualizarSelectoresUbicacion();
@@ -2197,7 +2220,7 @@
                     if (el) el.addEventListener("input", actualizarPreviewEAN);
                 });
 
-                console.log("✅ App v1.5 lista");
+                console.log("✅ App v1.5.1 lista");
             } catch (error) {
                 console.error("❌ Error init:", error);
             }
